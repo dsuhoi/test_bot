@@ -1,0 +1,17 @@
+[Unit]
+Description=Math bot for VK
+After=syslog.target
+After=network.target
+
+[Service]
+Type=simple
+#User=user
+#Group=users
+#EnvironmentFile= .../.envrc
+#WorkingDirectory= .../math_test_bot/
+#ExecStart= .../bin/python3 .../vktest.py
+RestartSec=10
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
