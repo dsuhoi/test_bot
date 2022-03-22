@@ -1,5 +1,5 @@
 [Unit]
-Description=Math bot for VK
+Description=Math bot for Vk and Telegram
 After=syslog.target
 After=network.target
 
@@ -9,7 +9,7 @@ Type=simple
 #Group=users
 #EnvironmentFile= .../.envrc
 #WorkingDirectory= .../math_test_bot/
-#ExecStart= .../bin/python3 .../vktest.py
+#ExecStart= .../bin/python3 .../start.py
 RestartSec=10
 Restart=always
 
