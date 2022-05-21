@@ -3,12 +3,13 @@ import os
 from vkbottle import CtxStorage
 from vkbottle import PhotoMessageUploader as photo_uploader
 from vkbottle.bot import Bot, Message
-
+from vkbottle.http import AiohttpClient
 import commands as cmd
 
 TOKEN = os.getenv("VK_TOKEN")
 bot = Bot(TOKEN)
 ctx = CtxStorage()
+http_client = AiohttpClient()
 
 
 @bot.on.message(text="Привет<!>")
@@ -53,6 +54,13 @@ async def plot(message: Message):
     doc = await photo_uploader(bot.api).upload(buff, peer_id=message.peer_id)
     buff.close()
     await message.answer(attachment=doc)
+
+
+@bot.on.message(text="/cat<!>")
+async def cat(message: Message):
+    buff = await http_client.request_content("https://thiscatdoesnotexist.com/")
+    doc = await photo_uploader(bot.api).upload(buff, peer_id=message.peer_id)
+    await message.answer("", attachment=doc)
 
 
 if __name__ == "__main__":
