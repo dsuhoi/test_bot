@@ -1,5 +1,5 @@
 aiofiles==0.8.0
-aiogram==2.19
+aiogram==2.20
 aiohttp==3.8.1
 aiosignal==1.2.0
 anyio==3.5.0
@@ -29,7 +29,7 @@ sniffio==1.2.0
 sympy==1.10.1
 typing_extensions==4.1.1
 vbml==1.1.post1
-vkbottle==4.2.2
+vkbottle==4.3.2
 vkbottle-types==5.131.146.1
 watchgod==0.8.2
 yarl==1.7.2
