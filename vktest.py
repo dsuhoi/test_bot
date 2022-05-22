@@ -1,15 +1,16 @@
 import os
 
 from vkbottle import CtxStorage
-from vkbottle import PhotoMessageUploader as photo_uploader
 from vkbottle.bot import Bot, Message
-from vkbottle.http import AiohttpClient
-import commands as cmd
+from commands import bot_except, commands as commands_
+from wrapper import vk_wrapper
 
 TOKEN = os.getenv("VK_TOKEN")
 bot = Bot(TOKEN)
 ctx = CtxStorage()
-http_client = AiohttpClient()
+
+wrap = vk_wrapper(bot.api)
+cmd = commands_(wrap)
 
 
 @bot.on.message(text="Привет<!>")
@@ -20,11 +21,16 @@ async def hello(message: Message):
 
 @bot.on.message(text="/help<!>")
 async def help_(message: Message):
-    await message.answer(cmd.help_())
+    await cmd.help(message)
+
+
+@bot.on.message(text="/cat<!>")
+async def cat(message: Message):
+    await cmd.cat(message)
 
 
 @bot.on.message(text="/manuls<!>")
-@cmd.bot_except()
+@bot_except()
 async def manuls_init(message: Message):
     state = message.text.split()[1]
     if state == "start":
@@ -36,31 +42,15 @@ async def manuls_init(message: Message):
 
 
 @bot.on.message(text="/calc<!>")
-@cmd.bot_except(sigflag=True)
+@bot_except(sigflag=True)
 async def calc(message: Message):
-    buff = cmd.calc_(message.text.split(" ", 1)[1])
-    if isinstance(buff, str):
-        await message.answer(buff)
-    else:
-        doc = await photo_uploader(bot.api).upload(buff, peer_id=message.peer_id)
-        buff.close()
-        await message.answer(attachment=doc)
+    await cmd.calc(message)
 
 
 @bot.on.message(text="/plot<!>")
-@cmd.bot_except(sigflag=True)
+@bot_except(sigflag=True)
 async def plot(message: Message):
-    buff = cmd.plot_(message.text[1:])
-    doc = await photo_uploader(bot.api).upload(buff, peer_id=message.peer_id)
-    buff.close()
-    await message.answer(attachment=doc)
-
-
-@bot.on.message(text="/cat<!>")
-async def cat(message: Message):
-    buff = await http_client.request_content("https://thiscatdoesnotexist.com/")
-    doc = await photo_uploader(bot.api).upload(buff, peer_id=message.peer_id)
-    await message.answer("", attachment=doc)
+    await cmd.plot(message)
 
 
 if __name__ == "__main__":

@@ -3,24 +3,26 @@ import os
 from aiogram import Bot, Dispatcher, executor
 from aiogram.types import Message
 from vkbottle import CtxStorage
-
-import commands as cmd
+from commands import bot_except, commands as commands_
+from wrapper import tg_wrapper
 
 TOKEN = os.getenv("TG_TOKEN")
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 
-
-@dp.message_handler(commands=["start", "help"])
-async def send_welcome(message: Message):
-    await message.reply(cmd.help_())
-
+wrap = tg_wrapper()
+cmd = commands_(wrap)
 
 ctx = CtxStorage()
 
 
+@dp.message_handler(commands=["start", "help"])
+async def send_welcome(message: Message):
+    await cmd.help(message)
+
+
 @dp.message_handler(commands="manuls")
-@cmd.bot_except()
+@bot_except()
 async def manuls_init(message: Message):
     state = message.text.split()[1]
     if state == "start":
@@ -31,23 +33,22 @@ async def manuls_init(message: Message):
         ctx.set("status", True)
 
 
+@dp.message_handler(commands="cat")
+@bot_except()
+async def cat(message: Message):
+    await cmd.cat(message)
+
+
 @dp.message_handler(commands="calc")
-@cmd.bot_except(sigflag=True)
+@bot_except(sigflag=True)
 async def calc(message: Message):
-    buff = cmd.calc_(message.text.split(" ", 1)[1])
-    if isinstance(buff, str):
-        await message.answer(buff)
-    else:
-        await message.answer_photo(buff)
-        buff.close()
+    await cmd.calc(message)
 
 
 @dp.message_handler(regexp_commands="plot")
-@cmd.bot_except(sigflag=True)
+@bot_except(sigflag=True)
 async def plot(message: Message):
-    buff = cmd.plot_(message.text[1:])
-    await message.answer_photo(buff)
-    buff.close()
+    await cmd.plot(message)
 
 
 if __name__ == "__main__":

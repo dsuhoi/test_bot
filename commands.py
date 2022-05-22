@@ -2,6 +2,8 @@ import asyncio as ac
 import logging
 import signal
 from io import BytesIO
+from vkbottle.http import AiohttpClient
+import wrapper
 
 from sympy import preview
 
@@ -14,6 +16,7 @@ signal.signal(
 )
 
 logging.basicConfig(format="[%(levelname)s]:<%(asctime)s>: %(message)s")
+http_client = AiohttpClient()
 
 
 def bot_except(**params):
@@ -33,53 +36,73 @@ def bot_except(**params):
     return decor
 
 
-def help_():
-    return """Инструкция к боту:
-/help -- вызов инструкции (кто б знал...)
-/manuls <start | stop> <A> <B> -- вызов/остановка подсчёта манулов в диапазоне [A;B]
-/calc [команда_Sympy] -- вызов интерпретатора СКА Sympy (Доки: https://docs.sympy.org/latest/index.html)
-/plot[...] -- вызов sympy-функций для вывода графиков (Доки: https://docs.sympy.org/latest/modules/plotting.html)
-"""
+class commands:
+    def __init__(self, bot: wrapper):
+        self.__bot = bot
 
+    async def help(self, message):
+        help_str = """Инструкция к боту:
+    /help -- вызов инструкции (кто б знал...)
+    /manuls <start | stop> <A> <B> -- вызов/остановка подсчёта манулов в диапазоне [A;B]
+    /calc [команда_Sympy] -- вызов интерпретатора СКА Sympy
+    /plot[...] -- вызов sympy-функций для вывода графиков
+    /cat -- получение фото кота
+    """
+        await self.__bot.answer(message, help_str)
 
-async def manuls_init(message, _state):
-    *_, start, end = message.text.split()
-    start, end = int(start), int(end)
-    if 0 < start <= end:
-        await message.answer(f"Подсчёт от {start} и до {end}:")
-        n_ends = [2, 0, 1, 1, 1, 2]
-        str_ends = ["", "а", "ов"]
-        for i in range(start, end + 1):
-            res_s = f"{i} манул{str_ends[2 if 4 < (i % 100) < 20 else n_ends[min(i % 10, 5)]]}"
-            await message.answer(res_s)
-            await ac.sleep(0.15)
-            if _state():
-                await message.answer("Остановка подсчёта")
-                break
+    async def manuls_init(self, message, _state):
+        *_, start, end = message.text.split()
+        start, end = int(start), int(end)
+        if 0 < start <= end:
+            await self.__bot.answer(message, f"Подсчёт от {start} и до {end}:")
+            n_ends = [2, 0, 1, 1, 1, 2]
+            str_ends = ["", "а", "ов"]
+            for i in range(start, end + 1):
+                res_s = f"{i} манул{str_ends[2 if 4 < (i % 100) < 20 else n_ends[min(i % 10, 5)]]}"
+                await self.__bot.answer(message, res_s)
+                await ac.sleep(0.15)
+                if _state():
+                    await self.__bot.answer(message, "Остановка подсчёта")
+                    break
 
+    def calc__(self, input_str: str):
+        signal.alarm(TIMEOUT)
+        res = vmw_eval(input_str)
+        signal.alarm(0)
+        res_str = f"Input: $${res['input']}$$\nOutput: $${res['output']}$$"
+        try:
+            buff = BytesIO()
+            preview(res_str, viewer="BytesIO", outputbuffer=buff, euler=False)
+            buff.seek(0)
+        except Exception:
+            return res_str
+        else:
+            return buff
 
-def calc_(input_str: str):
-    signal.alarm(TIMEOUT)
-    res = vmw_eval(input_str)
-    signal.alarm(0)
-    res_str = f"Input: $${res['input']}$$\nOutput: $${res['output']}$$"
-    try:
+    async def calc(self, message):
+        buff = self.calc__(message.text.split(" ", 1)[1])
+        if isinstance(buff, str):
+            await self.__bot.answer(message, buff)
+        else:
+            await self.__bot.answer_photo(message, buff)
+            buff.close()
+
+    def plot__(self, input_str: str):
+        signal.alarm(TIMEOUT)
+        fig = vmw_plot(input_str.rsplit(")", 1)[0] + ",show=False)")
         buff = BytesIO()
-        preview(res_str, viewer="BytesIO", outputbuffer=buff, euler=False)
+        signal.alarm(TIMEOUT)
+        fig.save(buff)
+        signal.alarm(0)
+        del fig
         buff.seek(0)
-    except Exception:
-        return res_str
-    else:
         return buff
 
+    async def plot(self, message):
+        buff = self.plot__(message.text[1:])
+        await self.__bot.answer_photo(message, buff)
+        buff.close()
 
-def plot_(input_str: str):
-    signal.alarm(TIMEOUT)
-    fig = vmw_plot(input_str.rsplit(")", 1)[0] + ",show=False)")
-    buff = BytesIO()
-    signal.alarm(TIMEOUT)
-    fig.save(buff)
-    signal.alarm(0)
-    del fig
-    buff.seek(0)
-    return buff
+    async def cat(self, message):
+        buff = await http_client.request_content("https://thiscatdoesnotexist.com/")
+        await self.__bot.answer_photo(message, buff)
