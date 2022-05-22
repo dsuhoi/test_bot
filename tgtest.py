@@ -34,10 +34,13 @@ async def manuls_init(message: Message):
 
 
 @dp.message_handler(commands="cat")
-@bot_except()
 async def cat(message: Message):
     await cmd.cat(message)
 
+@dp.message_handler(commands="weather")
+@bot_except()
+async def weather(message: Message)
+    await cmd.weather(message)
 
 @dp.message_handler(commands="calc")
 @bot_except(sigflag=True)

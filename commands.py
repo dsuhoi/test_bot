@@ -42,12 +42,13 @@ class commands:
 
     async def help(self, message):
         help_str = """Инструкция к боту:
-    /help -- вызов инструкции (кто б знал...)
-    /manuls <start | stop> <A> <B> -- вызов/остановка подсчёта манулов в диапазоне [A;B]
-    /calc [команда_Sympy] -- вызов интерпретатора СКА Sympy
-    /plot[...] -- вызов sympy-функций для вывода графиков
-    /cat -- получение фото кота
-    """
+/help -- вызов инструкции (кто б знал...)
+/manuls <start | stop> <A> <B> -- вызов/остановка подсчёта манулов в диапазоне [A;B]
+/calc [команда_Sympy] -- вызов интерпретатора СКА Sympy
+/plot[...] -- вызов sympy-функций для вывода графиков
+/cat -- получение фото кота
+/weather <city> -- погода
+"""
         await self.__bot.answer(message, help_str)
 
     async def manuls_init(self, message, _state):
@@ -106,3 +107,8 @@ class commands:
     async def cat(self, message):
         buff = await http_client.request_content("https://thiscatdoesnotexist.com/")
         await self.__bot.answer_photo(message, buff)
+
+    async def weather(self, message):
+        city = tmp[1] if len(tmp := message.text.split()) > 1 else "Novosibirsk"
+        text = await http_client.request_text(f"https://wttr.in/{city}?format=4")
+        await self.__bot.answer(message, text)

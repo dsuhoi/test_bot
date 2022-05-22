@@ -29,6 +29,12 @@ async def cat(message: Message):
     await cmd.cat(message)
 
 
+@bot.on.message(text="/weather<!>")
+@bot_except()
+async def weather(message: Message):
+    await cmd.weather(message)
+
+
 @bot.on.message(text="/manuls<!>")
 @bot_except()
 async def manuls_init(message: Message):
