@@ -110,5 +110,5 @@ class commands:
 
     async def weather(self, message):
         city = tmp[1] if len(tmp := message.text.split()) > 1 else "Novosibirsk"
-        text = await http_client.request_text(f"https://wttr.in/{city}?format=4")
+        text = await http_client.request_text(f"https://wttr.in/{city}?m&format=4")
         await self.__bot.answer(message, text)
