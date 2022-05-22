@@ -39,7 +39,7 @@ async def cat(message: Message):
 
 @dp.message_handler(commands="weather")
 @bot_except()
-async def weather(message: Message)
+async def weather(message: Message):
     await cmd.weather(message)
 
 @dp.message_handler(commands="calc")
