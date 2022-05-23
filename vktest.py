@@ -2,8 +2,8 @@ import os
 
 from vkbottle import CtxStorage
 from vkbottle.bot import Bot, Message
-from commands import bot_except, commands as commands_
-from wrapper import vk_wrapper
+from utils.commands import bot_except, commands as commands_
+from utils.wrapper import vk_wrapper
 
 TOKEN = os.getenv("VK_TOKEN")
 bot = Bot(TOKEN)
@@ -33,6 +33,12 @@ async def cat(message: Message):
 @bot_except()
 async def weather(message: Message):
     await cmd.weather(message)
+
+
+@bot.on.message(text="/qrcode<!>")
+@bot_except()
+async def qrcode(message: Message):
+    await cmd.qrcode(message)
 
 
 @bot.on.message(text="/manuls<!>")

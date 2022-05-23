@@ -3,8 +3,8 @@ import os
 from aiogram import Bot, Dispatcher, executor
 from aiogram.types import Message
 from vkbottle import CtxStorage
-from commands import bot_except, commands as commands_
-from wrapper import tg_wrapper
+from utils.commands import bot_except, commands as commands_
+from utils.wrapper import tg_wrapper
 
 TOKEN = os.getenv("TG_TOKEN")
 bot = Bot(token=TOKEN)
@@ -21,6 +21,23 @@ async def send_welcome(message: Message):
     await cmd.help(message)
 
 
+@dp.message_handler(commands="cat")
+async def cat(message: Message):
+    await cmd.cat(message)
+
+
+@dp.message_handler(commands="weather")
+@bot_except()
+async def weather(message: Message):
+    await cmd.weather(message)
+
+
+@dp.message_handler(commands="qrcode")
+@bot_except()
+async def qrcode(message: Message):
+    await cmd.qrcode(message)
+
+
 @dp.message_handler(commands="manuls")
 @bot_except()
 async def manuls_init(message: Message):
@@ -32,15 +49,6 @@ async def manuls_init(message: Message):
     elif state == "stop":
         ctx.set("status", True)
 
-
-@dp.message_handler(commands="cat")
-async def cat(message: Message):
-    await cmd.cat(message)
-
-@dp.message_handler(commands="weather")
-@bot_except()
-async def weather(message: Message):
-    await cmd.weather(message)
 
 @dp.message_handler(commands="calc")
 @bot_except(sigflag=True)

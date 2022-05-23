@@ -3,11 +3,12 @@ import logging
 import signal
 from io import BytesIO
 from vkbottle.http import AiohttpClient
-import wrapper
+import utils.wrapper as wrapper
+import qrcode
 
 from sympy import preview
 
-from sympy_wrapper import vmw_eval, vmw_plot  # local module
+from utils.sympy_wrapper import vmw_eval, vmw_plot  # local module
 
 TIMEOUT = 15
 signal.signal(
@@ -48,6 +49,7 @@ class commands:
 /plot[...] -- вызов sympy-функций для вывода графиков
 /cat -- получение фото кота
 /weather <city> -- погода
+/qrcode <text> -- генерация QR кода
 """
         await self.__bot.answer(message, help_str)
 
@@ -112,3 +114,11 @@ class commands:
         city = tmp[1] if len(tmp := message.text.split()) > 1 else "Novosibirsk"
         text = await http_client.request_text(f"https://wttr.in/{city}?m&format=4")
         await self.__bot.answer(message, text)
+
+    async def qrcode(self, message):
+        fig = qrcode.make(message.text.split(" ", 1)[1])
+        buff = BytesIO()
+        fig.save(buff)
+        del fig
+        buff.seek(0)
+        await self.__bot.answer_photo(message, buff, reply_to=True)
