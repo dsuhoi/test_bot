@@ -50,6 +50,7 @@ class commands:
 /cat -- получение фото кота
 /weather <city> -- погода
 /qrcode <text> -- генерация QR кода
+/story -- история от GPT2
 """
         await self.__bot.answer(message, help_str)
 
@@ -121,4 +122,13 @@ class commands:
         fig.save(buff)
         del fig
         buff.seek(0)
-        await self.__bot.answer_photo(message, buff, reply_to=True)
+        await self.__bot.reply_photo(message, buff)
+
+    async def story(self, message):
+        input_str = message.text.split(" ", 1)[1]
+        response = await http_client.request_json(
+            "https://pelevin.gpt.dobro.ai/generate/",
+            method="POST",
+            json={"prompt": input_str, "length": 100},
+        )
+        await self.__bot.answer(message, input_str + response["replies"][0])

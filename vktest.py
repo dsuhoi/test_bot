@@ -41,6 +41,11 @@ async def qrcode(message: Message):
     await cmd.qrcode(message)
 
 
+@bot.on.message(text="/story<!>")
+async def story(message: Message):
+    await cmd.story(message)
+
+
 @bot.on.message(text="/manuls<!>")
 @bot_except()
 async def manuls_init(message: Message):

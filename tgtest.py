@@ -38,6 +38,11 @@ async def qrcode(message: Message):
     await cmd.qrcode(message)
 
 
+@dp.message_handler(commands="story")
+async def story(message: Message):
+    await cmd.story(message)
+
+
 @dp.message_handler(commands="manuls")
 @bot_except()
 async def manuls_init(message: Message):
