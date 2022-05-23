@@ -25,7 +25,7 @@ for func in COMMAND_FUNC:
     exec(
         f"""
 @dp.message_handler({reg_str}commands=\"{func['name']}\")
-@bot_except(signal={func.get('signal')})
+@bot_except(sigflag={func.get('sigflag')})
 async def {func['name']}(message: Message):
     await cmd.{func['name']}(message)
 """

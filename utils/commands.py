@@ -1,4 +1,3 @@
-import asyncio as ac
 import logging
 import signal
 import argparse
@@ -20,6 +19,7 @@ signal.signal(
 
 logging.basicConfig(format="[%(levelname)s]:<%(asctime)s>: %(message)s")
 http_client = AiohttpClient()
+transl = translator(source="auto", target="ru")
 
 
 def bot_except(**params):
@@ -45,6 +45,7 @@ COMMAND_FUNC = [
     {"name": "fox"},
     {"name": "neko"},
     {"name": "translate"},
+    {"name": "numbers"},
     {"name": "qrcode"},
     {"name": "weather"},
     {"name": "story"},
@@ -131,6 +132,11 @@ class commands:
         args, text = parser.parse_known_intermixed_args(shlex.split(input_str))
         text = translator(source="auto", target=args.L).translate(text=" ".join(text))
         await self.__bot.reply(message, text)
+
+    async def numbers(self, message):
+        input_str = tmp[1] if len(tmp := message.text.split()) > 1 else "random"
+        text = await http_client.request_text(f"http://numbersapi.com/{input_str}")
+        await self.__bot.answer(message, transl.translate(text=text))
 
     async def weather(self, message):
         city = tmp[1] if len(tmp := message.text.split()) > 1 else "Novosibirsk"
