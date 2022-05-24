@@ -1,7 +1,6 @@
 import logging
 import signal
-import argparse
-import shlex
+import re
 from io import BytesIO
 from vkbottle.http import AiohttpClient
 import utils.wrapper as wrapper
@@ -20,6 +19,15 @@ signal.signal(
 logging.basicConfig(format="[%(levelname)s]:<%(asctime)s>: %(message)s")
 http_client = AiohttpClient()
 transl = translator(source="auto", target="ru")
+
+
+def get_attr(input_str: str, key, default=None):
+    templ = rf"\s?-?{key}\s*=?\s*(\w+)\s?"
+    res = re.search(templ, input_str)
+    if res:
+        return input_str.replace(res[0], " "), res[1]
+    else:
+        return input_str, default
 
 
 def bot_except(**params):
@@ -125,12 +133,9 @@ class commands:
         await self.__bot.answer_photo(message, buff)
 
     async def translate(self, message):
-        parser = argparse.ArgumentParser()
-        parser.add_argument("-L", "-lang", default="ru")
-
         input_str = message.text.split(" ", 1)[1]
-        args, text = parser.parse_known_intermixed_args(shlex.split(input_str))
-        text = translator(source="auto", target=args.L).translate(text=" ".join(text))
+        text, lang = get_attr(input_str, "L", default="ru")
+        text = translator(source="auto", target=lang.lower()).translate(text=text)
         await self.__bot.reply(message, text)
 
     async def numbers(self, message):

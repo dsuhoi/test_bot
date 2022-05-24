@@ -1,7 +1,7 @@
 import os
 
 from aiogram import Bot, Dispatcher, executor
-from aiogram.types import Message
+from aiogram.types import Message, ContentType
 from utils.commands import COMMAND_FUNC, bot_except, commands as commands_
 from utils.wrapper import tg_wrapper
 
@@ -14,13 +14,15 @@ cmd = commands_(wrap)
 
 
 @dp.message_handler(commands=["start", "help"])
-async def send_welcome(message: Message):
+async def help(message: Message):
     await cmd.help(message)
 
 
-COMMAND_FUNC.remove({"name": "help"})
+DEL_COMMANDS = ["help", "photo"]
 
-for func in COMMAND_FUNC:
+COMMAND_FUNC_ = filter(lambda a: a["name"] not in DEL_COMMANDS, COMMAND_FUNC)
+
+for func in COMMAND_FUNC_:
     reg_str = "regexp_" if func.get("regexp") else ""
     exec(
         f"""
