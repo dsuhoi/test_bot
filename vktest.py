@@ -11,14 +11,18 @@ wrap = vk_wrapper(bot.api)
 cmd = commands_(wrap)
 
 
+def generate_func(func):
+    @bot.on.message(text=f"/{func['name']}<!>")
+    @bot_except(sigflag=func.get("sigflag"))
+    async def wrapper(message: Message):
+        await getattr(cmd, func["name"])(message)
+
+    wrapper.__name__ = func["name"]
+    return wrapper
+
+
 for func in COMMAND_FUNC:
-    exec(
-        f"""
-@bot.on.message(text=\"/{func['name']}<!>\")
-@bot_except(sigflag={func.get('sigflag')})
-async def {func['name']}(message: Message):
-    await cmd.{func['name']}(message)
-"""
-    )
+    generate_func(func)
+
 if __name__ == "__main__":
     bot.run_forever()

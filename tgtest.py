@@ -1,7 +1,7 @@
 import os
 
 from aiogram import Bot, Dispatcher, executor
-from aiogram.types import Message, ContentType
+from aiogram.types import Message
 from utils.commands import COMMAND_FUNC, bot_except, commands as commands_
 from utils.wrapper import tg_wrapper
 
@@ -18,20 +18,28 @@ async def help(message: Message):
     await cmd.help(message)
 
 
-DEL_COMMANDS = ["help", "photo"]
+def generate_func(func):
+    handler_kwargs = {}
+    if func.get("regexp"):
+        handler_kwargs["regexp_commands"] = func["name"]
+    else:
+        handler_kwargs["commands"] = func["name"]
+
+    @dp.message_handler(**handler_kwargs)
+    @bot_except(sigflag=func.get("sigflag"))
+    async def wrapper(message: Message):
+        await getattr(cmd, func["name"])(message)
+
+    wrapper.__name__ = func["name"]
+    return wrapper
+
+
+DEL_COMMANDS = ["help"]
 
 COMMAND_FUNC_ = filter(lambda a: a["name"] not in DEL_COMMANDS, COMMAND_FUNC)
 
 for func in COMMAND_FUNC_:
-    reg_str = "regexp_" if func.get("regexp") else ""
-    exec(
-        f"""
-@dp.message_handler({reg_str}commands=\"{func['name']}\")
-@bot_except(sigflag={func.get('sigflag')})
-async def {func['name']}(message: Message):
-    await cmd.{func['name']}(message)
-"""
-    )
+    generate_func(func)
 
 
 if __name__ == "__main__":
