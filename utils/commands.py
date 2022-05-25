@@ -1,9 +1,10 @@
 import logging
 import signal
 import re
+from typing import Union
 from io import BytesIO
 from vkbottle.http import AiohttpClient
-import utils.wrapper as wrapper
+from utils.wrapper import vk_wrapper, tg_wrapper
 from deep_translator import GoogleTranslator as translator
 
 from sympy import preview
@@ -63,7 +64,7 @@ COMMAND_FUNC = [
 
 
 class commands:
-    def __init__(self, bot: wrapper):
+    def __init__(self, bot: Union[vk_wrapper, tg_wrapper]):
         self.__bot = bot
 
     async def help(self, message):
@@ -133,7 +134,7 @@ class commands:
         await self.__bot.answer_photo(message, buff)
 
     async def translate(self, message):
-        input_str = message.text.split(" ", 1)[1]
+        input_str = message.text.split(maxsplit=1)[1]
         text, lang = get_attr(input_str, "L", default="ru")
         text = translator(source="auto", target=lang.lower()).translate(text=text)
         await self.__bot.reply(message, text)
@@ -149,13 +150,14 @@ class commands:
         await self.__bot.answer(message, text)
 
     async def qrcode(self, message):
+        text = message.text.split(maxsplit=1)[1]
         buff = await http_client.request_content(
-            f"https://image-charts.com/chart?chs=150x150&cht=qr&chl={message.text.split(' ', 1)[1]}&choe=UTF-8"
+            f"https://image-charts.com/chart?chs=150x150&cht=qr&chl={text}&choe=UTF-8"
         )
         await self.__bot.reply_photo(message, buff)
 
     async def story(self, message):
-        input_str = message.text.split(" ", 1)[1]
+        input_str = message.text.split(maxsplit=1)[1]
         response = await http_client.request_json(
             "https://pelevin.gpt.dobro.ai/generate/",
             method="POST",

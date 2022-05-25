@@ -3,18 +3,7 @@ from vkbottle import PhotoMessageUploader as photo_uploader
 from aiogram.types import Message as mess_tg
 
 
-class wrapper:
-    async def answer(self, message, text: str, **kwargs):
-        pass
-
-    async def answer_photo(self, message, buff, caption: str, **kwargs):
-        pass
-
-    async def reply(self, message, text, **kwargs):
-        pass
-
-
-class vk_wrapper(wrapper):
+class vk_wrapper:
     def __init__(self, api):
         self.__api = api
 
@@ -44,7 +33,7 @@ class vk_wrapper(wrapper):
         await self.__upload(message, caption, buff, reply_to=True, **kwargs)
 
 
-class tg_wrapper(wrapper):
+class tg_wrapper:
     async def __upload(
         self, message: mess_tg, text: str = "", buff=None, reply_to=False, **kwargs
     ):
