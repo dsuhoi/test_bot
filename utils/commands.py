@@ -70,7 +70,6 @@ class commands:
     async def help(self, message):
         help_str = """Инструкция к боту:
 /help -- вызов инструкции (кто б знал...)
-/manuls <start | stop> <A> <B> -- вызов/остановка подсчёта манулов в диапазоне [A;B]
 /calc [команда_Sympy] -- вызов интерпретатора СКА Sympy
 /plot[...] -- вызов sympy-функций для вывода графиков
 /cat /fox /neko -- получение фото
