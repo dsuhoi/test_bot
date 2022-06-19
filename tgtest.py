@@ -2,7 +2,9 @@ import os
 
 from aiogram import Bot, Dispatcher, executor
 from aiogram.types import Message
-from utils.commands import COMMAND_FUNC, bot_except, commands as commands_
+
+from utils.commands import COMMAND_FUNC, bot_except
+from utils.commands import commands as commands_
 from utils.wrapper import tg_wrapper
 
 TOKEN = os.getenv("TG_TOKEN")

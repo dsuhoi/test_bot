@@ -1,6 +1,6 @@
-from vkbottle.bot import Message as mess_vk
-from vkbottle import PhotoMessageUploader as photo_uploader
 from aiogram.types import Message as mess_tg
+from vkbottle import PhotoMessageUploader as photo_uploader
+from vkbottle.bot import Message as mess_vk
 
 
 class vk_wrapper:

@@ -1,15 +1,15 @@
 import logging
-import signal
 import re
-from typing import Union
+import signal
 from io import BytesIO
-from vkbottle.http import AiohttpClient
-from utils.wrapper import vk_wrapper, tg_wrapper
-from deep_translator import GoogleTranslator as translator
+from typing import Union
 
+from deep_translator import GoogleTranslator as translator
 from sympy import preview
+from vkbottle.http import AiohttpClient
 
 from utils.sympy_wrapper import vmw_eval, vmw_plot  # local module
+from utils.wrapper import tg_wrapper, vk_wrapper
 
 TIMEOUT = 15
 signal.signal(
