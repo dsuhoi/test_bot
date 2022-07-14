@@ -3,8 +3,7 @@ import os
 from aiogram import Bot, Dispatcher, executor
 from aiogram.types import Message
 
-from utils.commands import COMMAND_FUNC, bot_except
-from utils.commands import commands as commands_
+from utils.commands import bot_commands, bot_except
 from utils.wrapper import tg_wrapper
 
 TOKEN = os.getenv("TG_TOKEN")
@@ -12,12 +11,12 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
 
 wrap = tg_wrapper()
-cmd = commands_(wrap)
+commands = bot_commands(wrap)
 
 
 @dp.message_handler(commands=["start", "help"])
 async def help(message: Message):
-    await cmd.help(message)
+    await commands.help(message)
 
 
 def generate_func(func):
@@ -30,7 +29,7 @@ def generate_func(func):
     @dp.message_handler(**handler_kwargs)
     @bot_except(sigflag=func.get("sigflag"))
     async def wrapper(message: Message):
-        await getattr(cmd, func["name"])(message)
+        await getattr(commands, func["name"])(message)
 
     wrapper.__name__ = func["name"]
     return wrapper
@@ -38,9 +37,9 @@ def generate_func(func):
 
 DEL_COMMANDS = ["help"]
 
-COMMAND_FUNC_ = filter(lambda a: a["name"] not in DEL_COMMANDS, COMMAND_FUNC)
+COMMAND_FUNC = filter(lambda a: a["name"] not in DEL_COMMANDS, commands.COMMANDS)
 
-for func in COMMAND_FUNC_:
+for func in COMMAND_FUNC:
     generate_func(func)
 
 

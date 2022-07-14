@@ -1,6 +1,34 @@
+from types import FunctionType
+
 from aiogram.types import Message as mess_tg
 from vkbottle import PhotoMessageUploader as photo_uploader
 from vkbottle.bot import Message as mess_vk
+
+
+class meta_cmd(type):
+    def __new__(mcs, name, bases, attrs):
+        cmd_list = attrs.setdefault("COMMANDS", list())
+        for key, value in attrs.items():
+            if isinstance(value, FunctionType) and value.__name__ == "__cmd":
+                cmd_list.append({"name": key, **value.command_params})
+        attrs["COMMANDS"] = sorted(
+            cmd_list,
+            key=lambda x: x["name"].lower() and len(x.values()) == 1,
+            reverse=True,
+        )
+
+        return super().__new__(mcs, name, bases, attrs)
+
+
+def cmd(**kwargs):
+    def decorator(func):
+        async def __cmd(*args, **kwargs):
+            return await func(*args, **kwargs)
+
+        __cmd.command_params = kwargs
+        return __cmd
+
+    return decorator
 
 
 class vk_wrapper:
