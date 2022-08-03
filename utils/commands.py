@@ -8,7 +8,7 @@ from deep_translator import GoogleTranslator as translator
 from sympy import preview
 from vkbottle.http import AiohttpClient
 
-from utils.sympy_wrapper import vmw_eval, vmw_plot  # local module
+from utils.sympy_wrapper import sympy_eval  # local module
 from utils.wrapper import cmd, meta_cmd, tg_wrapper, vk_wrapper
 
 TIMEOUT = 15
@@ -69,9 +69,9 @@ class bot_commands(metaclass=meta_cmd):
 
     def calc__(self, input_str: str):
         signal.alarm(TIMEOUT)
-        res = vmw_eval(input_str)
+        res = sympy_eval(input_str)
         signal.alarm(0)
-        res_str = f"Input: $${res['input']}$$\nOutput: $${res['output']}$$"
+        res_str = f"$${res['output']}$$"
         try:
             buff = BytesIO()
             preview(res_str, viewer="BytesIO", outputbuffer=buff, euler=False)
@@ -92,7 +92,7 @@ class bot_commands(metaclass=meta_cmd):
 
     def plot__(self, input_str: str):
         signal.alarm(TIMEOUT)
-        fig = vmw_plot(input_str.rsplit(")", 1)[0] + ",show=False)")
+        fig = sympy_eval(input_str.rsplit(")", 1)[0] + ",show=False)", plot=True)
         buff = BytesIO()
         signal.alarm(TIMEOUT)
         fig.save(buff)
