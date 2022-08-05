@@ -37,7 +37,6 @@ def bot_except(**params):
             try:
                 await func(message)
             except Exception as e:
-                raise (e)
                 if params:
                     if params["sigflag"]:
                         signal.alarm(0)
