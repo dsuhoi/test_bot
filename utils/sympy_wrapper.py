@@ -28,6 +28,12 @@ SYNONYMS = {
     "plot3dL": "plot3d_parametric_line",
 }
 
+INPUT_SYNONYMS = {
+    "diff": "Derivative",
+    "integrate": "Integral",
+    "limit": "Limit",
+}
+
 
 def custom_implicit_transformation(result, local_dict, global_dict):
     for step in (
@@ -51,6 +57,13 @@ def synonyms(tokens, local_dict, global_dict):
     return result
 
 
+def input_latex(input_string, namespace):
+    for key, value in INPUT_SYNONYMS.items():
+        if key in input_string:
+            input_string = input_string.replace(key, value)
+    return latex(eval_expr(input_string, {}, namespace))
+
+
 def sympy_eval(s, plot=False):
     namespace = {}
     exec(PREEXEC, {}, namespace)
@@ -64,8 +77,6 @@ def sympy_eval(s, plot=False):
         return evaluated
     else:
         return {
-            "input": latex(
-                parse_expr(s, {}, transformations, namespace, evaluate=False)
-            ),
+            "input": input_latex(parsed, namespace),
             "output": latex(evaluated),
         }
