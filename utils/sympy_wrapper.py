@@ -1,3 +1,5 @@
+import ast
+
 from sympy import latex, sympify
 from sympy.parsing.sympy_parser import (NAME, convert_xor, eval_expr,
                                         function_exponentiation,
@@ -30,8 +32,6 @@ SYNONYMS = {
 
 INPUT_SYNONYMS = {"diff": "Derivative", "integrate": "Integral", "limit": "Limit"}
 
-INPUT_FUNCTIONS = ["dsolve", "solve"]
-
 
 def custom_implicit_transformation(result, local_dict, global_dict):
     for step in (
@@ -60,10 +60,10 @@ def input_latex(parsed_str, namespace):
         if key in parsed_str and "." + key not in parsed_str:
             parsed_str = parsed_str.replace(key, value)
 
-    for func_name in INPUT_FUNCTIONS:
-        if func_name in parsed_str:
-            parsed_str = sympify(parsed_str.replace(func_name, ""))
-            return f"\\text{{{func_name}}}\\left({latex(parsed_str)}\\right)"
+    cmd_node = ast.parse(parsed_str, mode="eval").body
+    if isinstance(cmd_node, ast.Call):
+        parsed_str = sympify(parsed_str.replace(cmd_node.func.id, ""))
+        return f"\\text{{{cmd_node.func.id}}}\\left({latex(parsed_str)}\\right)"
     return latex(eval_expr(parsed_str, {}, namespace))
 
 
