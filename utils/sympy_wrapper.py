@@ -66,7 +66,7 @@ def input_latex(parsed_str, namespace):
 
     for func_name in INPUT_FUNCTIONS:
         if func_name in parsed_str:
-            return latex(sympify(parsed_str.replace(func_name, "")))
+            return f"{func_name}({latex(sympify(parsed_str.replace(func_name,'')))})"
     return latex(eval_expr(parsed_str, {}, namespace))
 
 
