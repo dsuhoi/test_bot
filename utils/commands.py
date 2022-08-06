@@ -70,7 +70,7 @@ class bot_commands(metaclass=meta_cmd):
         signal.alarm(TIMEOUT)
         res = sympy_eval(input_str)
         signal.alarm(0)
-        res_str = f"Input: $${res['input']}$$\nOutput: $${res['output']}$$"
+        res_str = f"Input:$${res['input']}$$\nOutput:$${res['output']}$$"
         try:
             buff = BytesIO()
             preview(res_str, viewer="BytesIO", outputbuffer=buff, euler=False)
