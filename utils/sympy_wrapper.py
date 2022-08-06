@@ -1,4 +1,4 @@
-from sympy import latex, parse_expr
+from sympy import latex, sympify
 from sympy.parsing.sympy_parser import (NAME, convert_xor, eval_expr,
                                         function_exponentiation,
                                         implicit_application,
@@ -34,6 +34,8 @@ INPUT_SYNONYMS = {
     "limit": "Limit",
 }
 
+INPUT_FUNCTIONS = ["dsolve"]
+
 
 def custom_implicit_transformation(result, local_dict, global_dict):
     for step in (
@@ -57,11 +59,15 @@ def synonyms(tokens, local_dict, global_dict):
     return result
 
 
-def input_latex(input_string, namespace):
+def input_latex(parsed_str, namespace):
     for key, value in INPUT_SYNONYMS.items():
-        if key in input_string:
-            input_string = input_string.replace(key, value)
-    return latex(eval_expr(input_string, {}, namespace))
+        if key in parsed_str and "." + key not in parsed_str:
+            parsed_str = parsed_str.replace(key, value)
+
+    for func_name in INPUT_FUNCTIONS:
+        if func_name in parsed_str:
+            return latex(sympify(parsed_str.replace(func_name, "")))
+    return latex(eval_expr(parsed_str, {}, namespace))
 
 
 def sympy_eval(s, plot=False):
