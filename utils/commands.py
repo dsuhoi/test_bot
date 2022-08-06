@@ -66,46 +66,6 @@ class bot_commands(metaclass=meta_cmd):
 """
         await self.__bot.answer(message, help_str)
 
-    def calc__(self, input_str: str):
-        signal.alarm(TIMEOUT)
-        res = sympy_eval(input_str)
-        signal.alarm(0)
-        res_str = f"Input:$${res['input']}$$\nOutput:$${res['output']}$$"
-        try:
-            buff = BytesIO()
-            preview(res_str, viewer="BytesIO", outputbuffer=buff, euler=False)
-            buff.seek(0)
-        except Exception:
-            return res_str
-        else:
-            return buff
-
-    @cmd(sigflag=True)
-    async def calc(self, message):
-        buff = self.calc__(message.text.split(" ", 1)[1])
-        if isinstance(buff, str):
-            await self.__bot.answer(message, buff)
-        else:
-            await self.__bot.answer_photo(message, buff)
-            buff.close()
-
-    def plot__(self, input_str: str):
-        signal.alarm(TIMEOUT)
-        fig = sympy_eval(input_str.rsplit(")", 1)[0] + ",show=False)", plot=True)
-        buff = BytesIO()
-        signal.alarm(TIMEOUT)
-        fig.save(buff)
-        signal.alarm(0)
-        del fig
-        buff.seek(0)
-        return buff
-
-    @cmd(sigflag=True, regexp=True)
-    async def plot(self, message):
-        buff = self.plot__(message.text[1:])
-        await self.__bot.answer_photo(message, buff)
-        buff.close()
-
     @cmd()
     async def cat(self, message):
         buff = await http_client.request_content("https://thiscatdoesnotexist.com/")
@@ -159,3 +119,43 @@ class bot_commands(metaclass=meta_cmd):
             json={"prompt": input_str, "length": 100},
         )
         await self.__bot.answer(message, input_str + response["replies"][0])
+
+    def calc__(self, input_str: str):
+        signal.alarm(TIMEOUT)
+        res = sympy_eval(input_str)
+        signal.alarm(0)
+        res_str = f"Input:$${res['input']}$$\nOutput:$${res['output']}$$"
+        try:
+            buff = BytesIO()
+            preview(res_str, viewer="BytesIO", outputbuffer=buff, euler=False)
+            buff.seek(0)
+        except Exception:
+            return res_str
+        else:
+            return buff
+
+    @cmd(sigflag=True)
+    async def calc(self, message):
+        buff = self.calc__(message.text.split(" ", 1)[1])
+        if isinstance(buff, str):
+            await self.__bot.answer(message, buff)
+        else:
+            await self.__bot.answer_photo(message, buff)
+            buff.close()
+
+    def plot__(self, input_str: str):
+        signal.alarm(TIMEOUT)
+        fig = sympy_eval(input_str.rsplit(")", 1)[0] + ",show=False)", plot=True)
+        buff = BytesIO()
+        signal.alarm(TIMEOUT)
+        fig.save(buff)
+        signal.alarm(0)
+        del fig
+        buff.seek(0)
+        return buff
+
+    @cmd(sigflag=True, regexp=True)
+    async def plot(self, message):
+        buff = self.plot__(message.text[1:])
+        await self.__bot.answer_photo(message, buff)
+        buff.close()

@@ -11,12 +11,6 @@ class meta_cmd(type):
         for key, value in attrs.items():
             if isinstance(value, FunctionType) and value.__name__ == "__cmd":
                 cmd_list.append({"name": key, **value.command_params})
-        attrs["COMMANDS"] = sorted(
-            cmd_list,
-            key=lambda x: x["name"].lower() and len(x.values()) == 1,
-            reverse=True,
-        )
-
         return super().__new__(mcs, name, bases, attrs)
 
 
