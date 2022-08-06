@@ -28,13 +28,9 @@ SYNONYMS = {
     "plot3dL": "plot3d_parametric_line",
 }
 
-INPUT_SYNONYMS = {
-    "diff": "Derivative",
-    "integrate": "Integral",
-    "limit": "Limit",
-}
+INPUT_SYNONYMS = {"diff": "Derivative", "integrate": "Integral", "limit": "Limit"}
 
-INPUT_FUNCTIONS = ["dsolve"]
+INPUT_FUNCTIONS = ["dsolve", "solve"]
 
 
 def custom_implicit_transformation(result, local_dict, global_dict):
@@ -66,7 +62,8 @@ def input_latex(parsed_str, namespace):
 
     for func_name in INPUT_FUNCTIONS:
         if func_name in parsed_str:
-            return f"{func_name}({latex(sympify(parsed_str.replace(func_name,'')))})"
+            parsed_str = sympify(parsed_str.replace(func_name, ""))
+            return f"\\text{{{func_name}}}\\left({latex(parsed_str)}\\right)"
     return latex(eval_expr(parsed_str, {}, namespace))
 
 
