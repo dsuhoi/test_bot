@@ -72,20 +72,15 @@ class bot_commands(metaclass=meta_cmd):
 /calc integrate(cos(x)) -- интегрирование
 /calc diff(cos(x)) -- дифференцирование
 /calc solve(x^3 + 2x^2 - 4x + 1) -- поиск корней
-
-Подробнее о других функциях в документации на Sympy
 """
                 case "plot":
                     help_str = """Примеры:
 /plot(x, x^2, x^3) -- вывод нескольких графиков
 /ploti(x^2 - y^2 - 1) -- вывод графика, заданного уравнением
 Синонимы:
-plotp -- plot_parametric
 ploti -- plot_implicit
 plot3ds -- plot3d_parametric_surface
 plot3dL -- plot3d_parametric_line
-
-Подробнее о других функциях вывода в документации Sympy
 """
                 case "translate":
                     help_str = """Примеры:

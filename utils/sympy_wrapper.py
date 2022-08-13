@@ -61,7 +61,9 @@ def input_latex(parsed_str, namespace):
             parsed_str = parsed_str.replace(key, value)
 
     cmd_node = ast.parse(parsed_str, mode="eval").body
-    if isinstance(cmd_node, ast.Call):
+    if isinstance(cmd_node, ast.Call) and (
+        cmd_node.func.id not in INPUT_SYNONYMS.values()
+    ):
         parsed_str = sympify(parsed_str.replace(cmd_node.func.id, ""))
         return f"\\text{{{cmd_node.func.id}}}\\left({latex(parsed_str)}\\right)"
     return latex(eval_expr(parsed_str, {}, namespace))
@@ -76,6 +78,7 @@ def sympy_eval(s, plot=False):
     transformations.extend((convert_xor, custom_implicit_transformation))
     parsed = stringify_expr(s, {}, namespace, transformations)
     evaluated = eval_expr(parsed, {}, namespace)
+
     if plot:
         return evaluated
     else:
