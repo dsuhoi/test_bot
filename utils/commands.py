@@ -55,14 +55,42 @@ class bot_commands(metaclass=meta_cmd):
     @cmd()
     async def help(self, message):
         help_str = """Инструкция к боту:
-/help -- вызов инструкции (кто б знал...)
-/calc [команда_Sympy] -- вызов интерпретатора СКА Sympy
+/help <command> -- вызов инструкции (кто б знал...)
+/calc [Sympy_command] -- вызов интерпретатора СКА Sympy
 /plot[...] -- вызов sympy-функций для вывода графиков
 /cat /fox /neko -- получение фото
 /translate [-L <lang>] <text> - перевод text на lang
 /weather <city> -- погода
 /qrcode <text> -- генерация QR кода
 /story -- история от GPT2
+"""
+        input_str = message.text.split()
+        if len(input_str) > 1:
+            match input_str[1]:
+                case "calc":
+                    help_str = """Примеры:
+/calc integrate(cos(x)) -- интегрирование
+/calc diff(cos(x)) -- дифференцирование
+/calc solve(x^3 + 2x^2 - 4x + 1) -- поиск корней
+
+Подробнее о других функциях в документации на Sympy
+"""
+                case "plot":
+                    help_str = """Примеры:
+/plot(x, x^2, x^3) -- вывод нескольких графиков
+/ploti(x^2 - y^2 - 1) -- вывод графика, заданного уравнением
+Синонимы:
+plotp -- plot_parametric
+ploti -- plot_implicit
+plot3ds -- plot3d_parametric_surface
+plot3dL -- plot3d_parametric_line
+
+Подробнее о других функциях вывода в документации Sympy
+"""
+                case "translate":
+                    help_str = """Примеры:
+/translate Hello world!
+/translate -L ja Привет мир!
 """
         await self.__bot.answer(message, help_str)
 
