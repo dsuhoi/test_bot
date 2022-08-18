@@ -4,8 +4,9 @@ import signal
 from io import BytesIO
 from typing import Union
 
+from cairosvg import svg2png
 from deep_translator import GoogleTranslator as translator
-from sympy import preview
+# from sympy import preview
 from vkbottle.http import AiohttpClient
 
 from utils.sympy_wrapper import sympy_eval  # local module
@@ -143,14 +144,24 @@ plot3dL -- plot3d_parametric_line
         )
         await self.__bot.answer(message, input_str + response["replies"][0])
 
-    def calc__(self, input_str: str):
+    async def calc__(self, input_str: str):
         signal.alarm(TIMEOUT)
         res = sympy_eval(input_str)
         signal.alarm(0)
         res_str = f"Input:$${res['input']}$$\nOutput:$${res['output']}$$"
         try:
+            resp_svg = await http_client.request_content(
+                "https://math.vercel.app/",
+                params={
+                    "from": r"\begin{aligned} & \text{Input:} \\"
+                    + rf"& {res['input']} \\"
+                    + r"& \text{Output:} \\"
+                    + f"& {res['output']}"
+                    + r"\end{aligned}"
+                },
+            )
             buff = BytesIO()
-            preview(res_str, viewer="BytesIO", outputbuffer=buff, euler=False)
+            svg2png(bytestring=resp_svg, write_to=buff, dpi=200)
             buff.seek(0)
         except Exception:
             return res_str
@@ -159,7 +170,7 @@ plot3dL -- plot3d_parametric_line
 
     @cmd(sigflag=True)
     async def calc(self, message):
-        buff = self.calc__(message.text.split(" ", 1)[1])
+        buff = await self.calc__(message.text.split(" ", 1)[1])
         if isinstance(buff, str):
             await self.__bot.answer(message, buff)
         else:
