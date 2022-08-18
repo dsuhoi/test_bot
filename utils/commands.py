@@ -9,7 +9,7 @@ from deep_translator import GoogleTranslator as translator
 # from sympy import preview
 from vkbottle.http import AiohttpClient
 
-from utils.sympy_wrapper import sympy_eval  # local module
+from utils.sympy_wrapper import sympy_eval
 from utils.wrapper import cmd, meta_cmd, tg_wrapper, vk_wrapper
 
 TIMEOUT = 15
