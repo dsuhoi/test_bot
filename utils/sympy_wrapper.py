@@ -55,17 +55,39 @@ def synonyms(tokens, local_dict, global_dict):
     return result
 
 
+def simpify_block(node, braces=False):
+    name_func = node.func.id
+    parsed_str = latex(sympify(ast.unparse(node).replace(name_func, "")))
+    parsed_str = f"\\left({parsed_str}\\right)" if braces else parsed_str
+    name_func = name_func.replace("_", r"\_")
+    return f"\\text{{{name_func}}}{parsed_str}"
+
+
+def parse_block(cmd_node):
+    if isinstance(cmd_node, ast.Call):
+        attrs_str = ""
+        while isinstance(cmd_node.func, ast.Attribute):
+            tmp = ast.unparse(cmd_node)
+            cmd_node = cmd_node.func.value
+            attrs_str = "." + (
+                simpify_block(
+                    ast.parse(tmp.replace(ast.unparse(cmd_node), "")[1:]).body[0].value
+                )
+                + attrs_str
+            )
+
+        if cmd_node.func.id not in INPUT_SYNONYMS.values():
+            return simpify_block(cmd_node, braces=True) + attrs_str
+
+
 def input_latex(parsed_str, namespace):
     for key, value in INPUT_SYNONYMS.items():
         if key in parsed_str and "." + key not in parsed_str:
             parsed_str = parsed_str.replace(key, value)
 
     cmd_node = ast.parse(parsed_str, mode="eval").body
-    if isinstance(cmd_node, ast.Call) and (
-        cmd_node.func.id not in INPUT_SYNONYMS.values()
-    ):
-        parsed_str = sympify(parsed_str.replace(cmd_node.func.id, ""))
-        return f"\\text{{{cmd_node.func.id}}}\\left({latex(parsed_str)}\\right)"
+    if result := parse_block(cmd_node):
+        return result
     return latex(eval_expr(parsed_str, {}, namespace))
 
 
