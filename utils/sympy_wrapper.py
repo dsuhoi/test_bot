@@ -1,6 +1,6 @@
 import ast
 
-from sympy import Symbol, latex, sympify
+from sympy import latex, sympify
 from sympy.parsing.sympy_parser import (NAME, convert_xor, eval_expr,
                                         function_exponentiation,
                                         implicit_application,
@@ -108,7 +108,7 @@ def input_latex(parsed_str, namespace, evaluated):
         if key in parsed_str and "." + key not in parsed_str:
             parsed_str = parsed_str.replace(key, value)
     node = ast.parse(parsed_str, mode="eval").body
-    return result if result := parse_block(node) else evaluated
+    return result if (result := parse_block(node)) else evaluated
 
 
 def sympy_eval(s, plot=False):
