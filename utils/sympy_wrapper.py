@@ -21,6 +21,8 @@ SYNONYMS = {
     "derivative": "diff",
     "derive": "diff",
     "integral": "integrate",
+    "lim": "limit",
+    "sum": "Sum",
     "antiderivative": "integrate",
     "factorize": "factor",
     "plotp": "plot_parametric",
@@ -30,7 +32,15 @@ SYNONYMS = {
 }
 
 INPUT_SYNONYMS = {"diff": "Derivative", "integrate": "Integral", "limit": "Limit"}
-SYMPY_OBJECTS = ["Integer", "Symbol", "Float", "Rational", "Matrix", "Sum"]
+SYMPY_OBJECTS = [
+    "Integer",
+    "Symbol",
+    "Float",
+    "Rational",
+    "Matrix",
+    "randMatrix",
+    "Sum",
+]
 
 
 def custom_implicit_transformation(result, local_dict, global_dict):
@@ -55,6 +65,20 @@ def synonyms(tokens, local_dict, global_dict):
     return result
 
 
+def check_attrib(node):
+    class attr_vis(ast.NodeVisitor):
+        def __init__(self):
+            self.attribute_flag = False
+
+        def visit_Attribute(self, node):
+            self.attribute_flag = True
+            ast.NodeVisitor.generic_visit(self, node)
+
+    vis = attr_vis()
+    vis.visit(node)
+    return vis.attribute_flag
+
+
 def simpify_block(node, braces=False):
     name_func = node.func.id
     parsed_str = latex(sympify(ast.unparse(node).replace(name_func, "")))
@@ -69,13 +93,12 @@ def parse_block(node):
             ast.Add: "+",
             ast.Sub: "-",
             ast.Mult: r"\cdot",
-            ast.Div: "/",
             ast.Pow: "^",
         }
         if n_op := op.get(type(node.op)):
             return f"{parse_block(node.left)} {n_op} {parse_block(node.right)}"
-        else:
-            return latex(sympify(ast.unparse(node), evaluate=False))
+        elif isinstance(node.op, ast.Div) and check_attrib(node):
+            return f"\\frac{{{parse_block(node.left)}}}{{{parse_block(node.right)}}}"
     elif isinstance(node, ast.Call):
         attrs_str = ""
         while isinstance(node.func, ast.Attribute):
@@ -87,7 +110,7 @@ def parse_block(node):
                 )
                 + attrs_str
             )
-        attrs_str = (r"\;\;" + attrs_str) if attrs_str != "" else attrs_str
+        attrs_str = (r"\;" + attrs_str) if attrs_str != "" else attrs_str
         if node.func.id not in (list(INPUT_SYNONYMS.values()) + SYMPY_OBJECTS):
             return simpify_block(node, braces=True) + attrs_str
         else:
@@ -99,9 +122,8 @@ def input_latex(parsed_str, namespace):
     for key, value in INPUT_SYNONYMS.items():
         if key in parsed_str and "." + key not in parsed_str:
             parsed_str = parsed_str.replace(key, value)
-
-    cmd_node = ast.parse(parsed_str, mode="eval").body
-    return parse_block(cmd_node)
+    node = ast.parse(parsed_str, mode="eval").body
+    return parse_block(node)
 
 
 def sympy_eval(s, plot=False):
@@ -121,15 +143,3 @@ def sympy_eval(s, plot=False):
             "input": input_latex(parsed, namespace),
             "output": latex(evaluated),
         }
-
-
-if __name__ == "__main__":
-    from sympy.printing import preview
-
-    inp_str = "integrate(x*sin(x))"
-    res = sympy_eval(inp_str)
-    preview(
-        f"Input: $${res['input']}$$ Output: $${res['output']}$$",
-        output="png",
-        viewer="feh",
-    )
