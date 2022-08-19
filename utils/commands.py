@@ -63,7 +63,7 @@ class bot_commands(metaclass=meta_cmd):
 /translate [-L <lang>] <text> - перевод text на lang
 /weather <city> -- погода
 /qrcode <text> -- генерация QR кода
-/story -- история от GPT2
+/story <text> -- история от GPT2
 """
         input_str = message.text.split()
         if len(input_str) > 1:
