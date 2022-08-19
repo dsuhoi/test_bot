@@ -1,6 +1,6 @@
 import ast
 
-from sympy import latex, sympify
+from sympy import Symbol, latex, sympify
 from sympy.parsing.sympy_parser import (NAME, convert_xor, eval_expr,
                                         function_exponentiation,
                                         implicit_application,
@@ -32,15 +32,7 @@ SYNONYMS = {
 }
 
 INPUT_SYNONYMS = {"diff": "Derivative", "integrate": "Integral", "limit": "Limit"}
-SYMPY_OBJECTS = [
-    "Integer",
-    "Symbol",
-    "Float",
-    "Rational",
-    "Matrix",
-    "randMatrix",
-    "Sum",
-]
+NO_PARSE = ["Integer", "Symbol", "Float", "Rational", "Matrix", "randMatrix", "Sum"]
 
 
 def custom_implicit_transformation(result, local_dict, global_dict):
@@ -89,41 +81,34 @@ def simpify_block(node, braces=False):
 
 def parse_block(node):
     if isinstance(node, ast.BinOp):
-        op = {
-            ast.Add: "+",
-            ast.Sub: "-",
-            ast.Mult: r"\cdot",
-            ast.Pow: "^",
-        }
+        op = {ast.Add: "+", ast.Sub: "-"}
         if n_op := op.get(type(node.op)):
             return f"{parse_block(node.left)} {n_op} {parse_block(node.right)}"
-        elif isinstance(node.op, ast.Div) and check_attrib(node):
-            return f"\\frac{{{parse_block(node.left)}}}{{{parse_block(node.right)}}}"
     elif isinstance(node, ast.Call):
         attrs_str = ""
         while isinstance(node.func, ast.Attribute):
             tmp = ast.unparse(node)
-            node = node.func.value
-            attrs_str = "." + (
-                simpify_block(
-                    ast.parse(tmp.replace(ast.unparse(node), "")[1:]).body[0].value
-                )
-                + attrs_str
-            )
-        attrs_str = (r"\;" + attrs_str) if attrs_str != "" else attrs_str
-        if node.func.id not in (list(INPUT_SYNONYMS.values()) + SYMPY_OBJECTS):
+            node = node.func.valu
+            tmp = ast.parse(tmp.replace(ast.unparse(node), "")[1:]).body[0].value
+            attrs_str = "." + simpify_block(tmp) + attrs_str
+        attrs_str = (r"\;" + attrs_str) if attrs_str != "" else ""
+        if node.func.id not in (list(INPUT_SYNONYMS.values()) + NO_PARSE):
             return simpify_block(node, braces=True) + attrs_str
         else:
             return latex(sympify(ast.unparse(node))) + attrs_str
-    return latex(sympify(ast.unparse(node)))
+
+    if not check_attrib(node):
+        return latex(sympify(ast.unparse(node), evaluate=False))
+    else:
+        return None
 
 
-def input_latex(parsed_str, namespace):
+def input_latex(parsed_str, namespace, evaluated):
     for key, value in INPUT_SYNONYMS.items():
         if key in parsed_str and "." + key not in parsed_str:
             parsed_str = parsed_str.replace(key, value)
     node = ast.parse(parsed_str, mode="eval").body
-    return parse_block(node)
+    return result if result := parse_block(node) else evaluated
 
 
 def sympy_eval(s, plot=False):
@@ -140,6 +125,6 @@ def sympy_eval(s, plot=False):
         return evaluated
     else:
         return {
-            "input": input_latex(parsed, namespace),
+            "input": input_latex(parsed, namespace, evaluated),
             "output": latex(evaluated),
         }
