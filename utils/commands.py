@@ -6,7 +6,6 @@ from typing import Union
 
 from cairosvg import svg2png
 from deep_translator import GoogleTranslator as translator
-# from sympy import preview
 from vkbottle.http import AiohttpClient
 
 from utils.sympy_wrapper import sympy_eval

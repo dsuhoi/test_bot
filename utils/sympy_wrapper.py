@@ -32,7 +32,7 @@ SYNONYMS = {
 }
 
 INPUT_SYNONYMS = {"diff": "Derivative", "integrate": "Integral", "limit": "Limit"}
-NO_PARSE = ["Integer", "Symbol", "Float", "Rational", "Matrix", "randMatrix", "Sum"]
+NO_PARSE = ["Integer", "Symbol", "Float", "Rational", "Matrix", "Sum"]
 
 
 def custom_implicit_transformation(result, local_dict, global_dict):
@@ -88,7 +88,7 @@ def parse_block(node):
         attrs_str = ""
         while isinstance(node.func, ast.Attribute):
             tmp = ast.unparse(node)
-            node = node.func.valu
+            node = node.func.value
             tmp = ast.parse(tmp.replace(ast.unparse(node), "")[1:]).body[0].value
             attrs_str = "." + simpify_block(tmp) + attrs_str
         attrs_str = (r"\;" + attrs_str) if attrs_str != "" else ""
@@ -108,7 +108,7 @@ def input_latex(parsed_str, namespace, evaluated):
         if key in parsed_str and "." + key not in parsed_str:
             parsed_str = parsed_str.replace(key, value)
     node = ast.parse(parsed_str, mode="eval").body
-    return result if (result := parse_block(node)) else evaluated
+    return result if (result := parse_block(node)) else latex(evaluated)
 
 
 def sympy_eval(s, plot=False):
