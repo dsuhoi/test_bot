@@ -17,7 +17,6 @@ f = Function('f')
 g = Function('g')
 """
 
-
 SYNONYMS = {
     "derivative": "diff",
     "derive": "diff",
@@ -31,6 +30,7 @@ SYNONYMS = {
 }
 
 INPUT_SYNONYMS = {"diff": "Derivative", "integrate": "Integral", "limit": "Limit"}
+SYMPY_OBJECTS = ["Integer", "Symbol", "Float", "Rational", "Matrix", "Sum"]
 
 
 def custom_implicit_transformation(result, local_dict, global_dict):
@@ -63,21 +63,36 @@ def simpify_block(node, braces=False):
     return f"\\text{{{name_func}}}{parsed_str}"
 
 
-def parse_block(cmd_node):
-    if isinstance(cmd_node, ast.Call):
+def parse_block(node):
+    if isinstance(node, ast.BinOp):
+        op = {
+            ast.Add: "+",
+            ast.Sub: "-",
+            ast.Mult: r"\cdot",
+            ast.Div: "/",
+            ast.Pow: "^",
+        }
+        if n_op := op.get(type(node.op)):
+            return f"{parse_block(node.left)} {n_op} {parse_block(node.right)}"
+        else:
+            return latex(sympify(ast.unparse(node), evaluate=False))
+    elif isinstance(node, ast.Call):
         attrs_str = ""
-        while isinstance(cmd_node.func, ast.Attribute):
-            tmp = ast.unparse(cmd_node)
-            cmd_node = cmd_node.func.value
+        while isinstance(node.func, ast.Attribute):
+            tmp = ast.unparse(node)
+            node = node.func.value
             attrs_str = "." + (
                 simpify_block(
-                    ast.parse(tmp.replace(ast.unparse(cmd_node), "")[1:]).body[0].value
+                    ast.parse(tmp.replace(ast.unparse(node), "")[1:]).body[0].value
                 )
                 + attrs_str
             )
-
-        if cmd_node.func.id not in INPUT_SYNONYMS.values():
-            return simpify_block(cmd_node, braces=True) + attrs_str
+        attrs_str = (r"\;\;" + attrs_str) if attrs_str != "" else attrs_str
+        if node.func.id not in (list(INPUT_SYNONYMS.values()) + SYMPY_OBJECTS):
+            return simpify_block(node, braces=True) + attrs_str
+        else:
+            return latex(sympify(ast.unparse(node))) + attrs_str
+    return latex(sympify(ast.unparse(node)))
 
 
 def input_latex(parsed_str, namespace):
@@ -86,9 +101,7 @@ def input_latex(parsed_str, namespace):
             parsed_str = parsed_str.replace(key, value)
 
     cmd_node = ast.parse(parsed_str, mode="eval").body
-    if result := parse_block(cmd_node):
-        return result
-    return latex(eval_expr(parsed_str, {}, namespace))
+    return parse_block(cmd_node)
 
 
 def sympy_eval(s, plot=False):
@@ -108,3 +121,15 @@ def sympy_eval(s, plot=False):
             "input": input_latex(parsed, namespace),
             "output": latex(evaluated),
         }
+
+
+if __name__ == "__main__":
+    from sympy.printing import preview
+
+    inp_str = "integrate(x*sin(x))"
+    res = sympy_eval(inp_str)
+    preview(
+        f"Input: $${res['input']}$$ Output: $${res['output']}$$",
+        output="png",
+        viewer="feh",
+    )
