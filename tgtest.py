@@ -9,7 +9,6 @@ from utils.wrapper import tg_wrapper
 TOKEN = os.getenv("TG_TOKEN")
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
-
 wrap = tg_wrapper()
 commands = bot_commands(wrap)
 
@@ -36,7 +35,6 @@ def generate_func(func):
 
 
 DEL_COMMANDS = ["help"]
-
 COMMAND_FUNC = filter(lambda a: a["name"] not in DEL_COMMANDS, commands.COMMANDS)
 
 for func in COMMAND_FUNC:

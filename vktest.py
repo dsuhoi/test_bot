@@ -7,7 +7,6 @@ from utils.wrapper import vk_wrapper
 
 TOKEN = os.getenv("VK_TOKEN")
 bot = Bot(TOKEN)
-
 wrap = vk_wrapper(bot.api)
 commands = bot_commands(wrap)
 
@@ -23,7 +22,6 @@ def generate_func(func):
 
 
 DEL_COMMANDS = []
-
 COMMAND_FUNC = filter(lambda a: a["name"] not in DEL_COMMANDS, commands.COMMANDS)
 
 for func in COMMAND_FUNC:
