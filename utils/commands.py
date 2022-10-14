@@ -150,6 +150,7 @@ plot3dL -- plot3d_parametric_line
         ).get("images")
         images = [BytesIO(base64.decodebytes(i.encode("utf-8"))) for i in res]
         await self.__bot.reply_photo(message, images)
+        map(lambda x: x.close(), images)
 
     @cmd()
     async def story(self, message):

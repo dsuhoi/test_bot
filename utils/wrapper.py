@@ -77,7 +77,6 @@ class tg_wrapper:
                     await message.reply_media_group(tg_wrapper.media_upload(buff))
                 else:
                     await message.answer_media_group(tg_wrapper.media_upload(buff))
-
             else:
                 if reply_to:
                     await message.reply_photo(buff, caption=text, **kwargs)
