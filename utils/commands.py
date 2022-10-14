@@ -1,3 +1,4 @@
+import base64
 import logging
 import re
 import signal
@@ -62,6 +63,7 @@ class bot_commands(metaclass=meta_cmd):
 /translate [-L <lang>] <text> - перевод text на lang
 /weather <city> -- погода
 /qrcode <text> -- генерация QR кода
+/image <text> -- генерация изображения по описанию
 /story <text> -- история от GPT2
 """
         input_str = message.text.split()
@@ -132,6 +134,22 @@ plot3dL -- plot3d_parametric_line
             f"https://image-charts.com/chart?chs=150x150&cht=qr&chl={text}&choe=UTF-8"
         )
         await self.__bot.reply_photo(message, buff)
+
+    @cmd()
+    async def image(self, message):
+        text = message.text.split()[1]
+        URL = "https://backend.craiyon.com/generate"
+        res = (
+            await http_client.request_json(
+                URL,
+                method="POST",
+                json={
+                    "prompt": text,
+                },
+            )
+        ).get("images")
+        images = [BytesIO(base64.decodebytes(i.encode("utf-8"))) for i in res]
+        await self.__bot.reply_photo(message, images)
 
     @cmd()
     async def story(self, message):

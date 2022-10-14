@@ -1,5 +1,6 @@
 from types import FunctionType
 
+from aiogram.types import InputFile, InputMediaPhoto
 from aiogram.types import Message as mess_tg
 from vkbottle import PhotoMessageUploader as photo_uploader
 from vkbottle.bot import Message as mess_vk
@@ -34,7 +35,15 @@ class vk_wrapper:
     ):
         data = {}
         if buff:
-            doc = await photo_uploader(self.__api).upload(buff, peer_id=message.peer_id)
+            if isinstance(buff, list):
+                doc = [
+                    await photo_uploader(self.__api).upload(b, peer_id=message.peer_id)
+                    for b in buff
+                ]
+            else:
+                doc = await photo_uploader(self.__api).upload(
+                    buff, peer_id=message.peer_id
+                )
             data["attachment"] = doc
 
         if reply_to:
@@ -56,14 +65,24 @@ class vk_wrapper:
 
 
 class tg_wrapper:
+    def media_upload(buff_list, **kwargs):
+        return [InputMediaPhoto(InputFile(buff), **kwargs) for buff in buff_list]
+
     async def __upload(
         self, message: mess_tg, text: str = "", buff=None, reply_to=False, **kwargs
     ):
         if buff:
-            if reply_to:
-                await message.reply_photo(buff, caption=text, **kwargs)
+            if isinstance(buff, list):
+                if reply_to:
+                    await message.reply_media_group(tg_wrapper.media_upload(buff))
+                else:
+                    await message.answer_media_group(tg_wrapper.media_upload(buff))
+
             else:
-                await message.answer_photo(buff, caption=text, **kwargs)
+                if reply_to:
+                    await message.reply_photo(buff, caption=text, **kwargs)
+                else:
+                    await message.answer_photo(buff, caption=text, **kwargs)
         else:
             if reply_to:
                 await message.reply(text, **kwargs)
