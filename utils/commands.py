@@ -137,7 +137,7 @@ plot3dL -- plot3d_parametric_line
 
     @cmd()
     async def image(self, message):
-        text = message.text.split()[1]
+        text = message.text.split(maxsplit=1)[1]
         URL = "https://backend.craiyon.com/generate"
         res = (
             await http_client.request_json(
