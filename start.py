@@ -8,7 +8,7 @@ if __name__ == "__main__":
     tg_proc = mp.Process(
         target=tgt.executor.start_polling,
         args=(tgt.dp,),
-        kwargs={"skip_updates": True},
+        kwargs={"skip_updates": True, "on_startup": tgt.init_info},
     )
     vk_proc.start()
     tg_proc.start()

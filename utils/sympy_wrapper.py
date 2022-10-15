@@ -17,6 +17,11 @@ f = Function('f')
 g = Function('g')
 """
 
+PREEXEC_EXT = """
+X, Y = symbols('X Y', real=True)
+Z = X + I * Y
+"""
+
 SYNONYMS = {
     "derivative": "diff",
     "derive": "diff",
@@ -84,6 +89,7 @@ def parse_block(node):
         op = {ast.Add: "+", ast.Sub: "-"}
         if n_op := op.get(type(node.op)):
             return f"{parse_block(node.left)} {n_op} {parse_block(node.right)}"
+
     elif isinstance(node, ast.Call):
         attrs_str = ""
         while isinstance(node.func, ast.Attribute):
@@ -93,6 +99,7 @@ def parse_block(node):
             attrs_str = "." + simpify_block(tmp) + attrs_str
         attrs_str = (r"\;" + attrs_str) if attrs_str != "" else ""
         if node.func.id not in (list(INPUT_SYNONYMS.values()) + NO_PARSE):
+            node.keywords = []
             return simpify_block(node, braces=True) + attrs_str
         else:
             return latex(sympify(ast.unparse(node))) + attrs_str
@@ -107,13 +114,14 @@ def input_latex(parsed_str, namespace, evaluated):
     for key, value in INPUT_SYNONYMS.items():
         if key in parsed_str and "." + key not in parsed_str:
             parsed_str = parsed_str.replace(key, value)
+
     node = ast.parse(parsed_str, mode="eval").body
     return result if (result := parse_block(node)) else latex(evaluated)
 
 
 def sympy_eval(s, plot=False):
     namespace = {}
-    exec(PREEXEC, {}, namespace)
+    exec(PREEXEC + PREEXEC_EXT if plot else PREEXEC, {}, namespace)
     transformations = []
     transformations.append(synonyms)
     transformations.extend(standard_transformations)
