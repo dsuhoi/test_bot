@@ -53,45 +53,25 @@ class bot_commands(metaclass=meta_cmd):
     def __init__(self, bot: Union[vk_wrapper, tg_wrapper]):
         self.__bot = bot
 
-    @cmd()
+        self.__help = "Инструкция к боту:\n"
+        self.__help_ext = {}
+        for func in bot_commands.COMMANDS:
+            if h := func.get("help_"):
+                self.__help += h + "\n"
+            if h_ext := func.get("help_ext"):
+                self.__help_ext[func.get("name")] = h_ext
+
+    @cmd(help_="/help <command> -- инструкция (кто б знал...)")
     async def help(self, message):
-        help_str = """Инструкция к боту:
-/help <command> -- вызов инструкции (кто б знал...)
-/calc [Sympy_command] -- вызов интерпретатора СКА Sympy
-/plot[...] -- вызов sympy-функций для вывода графиков
-/cat /fox /neko -- получение фото
-/translate [-L <lang>] <text> - перевод text на lang
-/weather <city> -- погода
-/qrcode <text> -- генерация QR кода
-/image <text> -- генерация изображения по описанию
-/story <text> -- история от GPT2
-"""
-        input_str = message.text.split()
-        if len(input_str) > 1:
-            match input_str[1]:
-                case "calc":
-                    help_str = """Примеры:
-/calc integrate(cos(x)) -- интегрирование
-/calc diff(cos(x)) -- дифференцирование
-/calc solve(x^3 + 2x^2 - 4x + 1) -- поиск корней
-"""
-                case "plot":
-                    help_str = """Примеры:
-/plot(x, x^2, x^3) -- вывод нескольких графиков
-/ploti(x^2 - y^2 - 1) -- вывод графика, заданного уравнением
-Синонимы:
-ploti -- plot_implicit
-plot3ds -- plot3d_parametric_surface
-plot3dL -- plot3d_parametric_line
-"""
-                case "translate":
-                    help_str = """Примеры:
-/translate Hello world!
-/translate -L ja Привет мир!
-"""
+        input_str = message.text.split(maxsplit=1)
+        if len(input_str) > 1 and (h := self.__help_ext.get(input_str[1])):
+            help_str = h
+        else:
+            help_str = self.__help
+
         await self.__bot.answer(message, help_str)
 
-    @cmd()
+    @cmd(help_="/cat /fox /neko -- получение фото")
     async def cat(self, message):
         buff = await http_client.request_content("https://thiscatdoesnotexist.com/")
         await self.__bot.answer_photo(message, buff)
@@ -108,26 +88,32 @@ plot3dL -- plot3d_parametric_line
         buff = await http_client.request_content(resp["url"])
         await self.__bot.answer_photo(message, buff)
 
-    @cmd()
+    @cmd(
+        help_="/translate [-L <lang>] <text> - перевод text на lang",
+        help_ext="""Примеры:
+/translate Hello world!
+/translate -L ja Привет мир!
+""",
+    )
     async def translate(self, message):
         input_str = message.text.split(maxsplit=1)[1]
         text, lang = get_attr(input_str, "L", default="ru")
         text = translator(source="auto", target=lang.lower()).translate(text=text)
         await self.__bot.reply(message, text)
 
-    @cmd()
+    @cmd(help_ext="/number <number> -- получение информации о числе")
     async def numbers(self, message):
         input_str = tmp[1] if len(tmp := message.text.split()) > 1 else "random"
         text = await http_client.request_text(f"http://numbersapi.com/{input_str}")
         await self.__bot.answer(message, transl.translate(text=text))
 
-    @cmd()
+    @cmd(help_="/weather <city> -- погода")
     async def weather(self, message):
         city = tmp[1] if len(tmp := message.text.split()) > 1 else "Novosibirsk"
         text = await http_client.request_text(f"https://wttr.in/{city}?m&format=4")
         await self.__bot.answer(message, text)
 
-    @cmd()
+    @cmd(help_="/qrcode <text> -- генерация QR кода")
     async def qrcode(self, message):
         text = message.text.split(maxsplit=1)[1]
         buff = await http_client.request_content(
@@ -135,7 +121,7 @@ plot3dL -- plot3d_parametric_line
         )
         await self.__bot.reply_photo(message, buff)
 
-    @cmd()
+    @cmd(help_="/image <text> -- генерация изображения по описанию")
     async def image(self, message):
         text = message.text.split(maxsplit=1)[1]
         URL = "https://backend.craiyon.com/generate"
@@ -152,7 +138,7 @@ plot3dL -- plot3d_parametric_line
         await self.__bot.reply_photo(message, images)
         map(lambda x: x.close(), images)
 
-    @cmd()
+    @cmd(help_="/story <text> -- история от GPT2")
     async def story(self, message):
         input_str = message.text.split(maxsplit=1)[1]
         response = await http_client.request_json(
@@ -186,7 +172,15 @@ plot3dL -- plot3d_parametric_line
         else:
             return buff
 
-    @cmd(sigflag=True)
+    @cmd(
+        sigflag=True,
+        help_="/calc [Sympy_command] -- вызов интерпретатора СКА Sympy",
+        help_ext="""Примеры:
+/calc integrate(cos(x)) -- интегрирование
+/calc diff(cos(x)) -- дифференцирование
+/calc solve(x^3 + 2x^2 - 4x + 1) -- поиск корней
+""",
+    )
     async def calc(self, message):
         buff = await self.calc__(message.text.split(" ", 1)[1])
         if isinstance(buff, str):
@@ -206,7 +200,19 @@ plot3dL -- plot3d_parametric_line
         buff.seek(0)
         return buff
 
-    @cmd(sigflag=True, regexp=True)
+    @cmd(
+        sigflag=True,
+        regexp=True,
+        help_="/plot[...] -- вызов sympy-функций для вывода графиков",
+        help_ext="""Примеры:
+/plot(x, x^2, x^3) -- вывод нескольких графиков
+/ploti(x^2 - y^2 - 1) -- вывод графика, заданного уравнением
+Синонимы:
+ploti -- plot_implicit
+plot3ds -- plot3d_parametric_surface
+plot3dL -- plot3d_parametric_line
+""",
+    )
     async def plot(self, message):
         buff = self.plot__(message.text[1:])
         await self.__bot.answer_photo(message, buff)
