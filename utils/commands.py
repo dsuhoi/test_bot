@@ -61,7 +61,7 @@ class bot_commands(metaclass=meta_cmd):
             if h_ext := func.get("help_ext"):
                 self.__help_ext[func.get("name")] = h_ext
 
-    @cmd(help_="/help <command> -- инструкция (кто б знал...)")
+    @cmd(help_="/help <command> -- вызов инструкции")
     async def help(self, message):
         input_str = message.text.split(maxsplit=1)
         if len(input_str) > 1 and (h := self.__help_ext.get(input_str[1])):

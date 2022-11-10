@@ -1,4 +1,4 @@
-# Welcome to math_test_bot
+# math_test_bot
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/dsuhoi/math_test_bot/blob/main/LICENSE)
 
 > This is my test asynchronous bot for Vk and Telegram.
@@ -12,12 +12,6 @@ pip istall -r requirements.txt
 ```sh
 python start.py
 ```
-
-## Author
-
-**dsuhoi**
-
-* Github: [@dsuhoi](https://github.com/dsuhoi)
 
 ## Contributing
 
