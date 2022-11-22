@@ -1,4 +1,6 @@
 # test_bot
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/dsuhoi/test_bot)
+[![Telegram](https://badgen.net/badge/icon/telegram?icon=telegram&label)](https://t.me/math_test0_bot)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/dsuhoi/math_test_bot/blob/main/LICENSE)
 
 > This is my test asynchronous bot for Vk and Telegram.
