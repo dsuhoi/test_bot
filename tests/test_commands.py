@@ -10,23 +10,29 @@ class mock_message:
         return f"mock_mess: {self.text}"
 
 
-def mock_http_client(result):
-    class _mock_http_client:
-        async def requests_content(self, url):
-            return result
+class mock_http_client:
+    def __init__(self, data=dict()):
+        self.__data = data
 
-        async def requests_json(self, url):
-            return result
+    async def request_text(self, url, *args, **kwargs):
+        return self.__data.get(url)
 
-        def __repr__(self):
-            return f"http_client: {result}"
+    async def request_content(self, url, *args, **kwargs):
+        return self.__data.get(url)
 
-    return _mock_http_client()
+    async def request_json(self, url, *args, **kwargs):
+        return self.__data.get(url)
+
+    def __repr__(self):
+        return f"http_client: {self.__data}"
 
 
 def mock_bot(result):
     class _mock_bot:
         async def answer(self, message, data):
+            assert data == result
+
+        async def reply(self, message, data):
             assert data == result
 
         def __repr__(self):
@@ -42,9 +48,8 @@ def mock_bot(result):
             bot_commands.help,
             "/help translate",
             "Примеры:\n/translate Hello world!\n/translate -L ja Привет мир!\n",
-            (bot_commands.weather, "/weather Moscow", "Moscow: ☁️   🌡️-6°C 🌬️←19km/h"),
         ),
-        # ("/calc "),
+        (bot_commands.translate, "/translate Hello world!", "Привет, мир!"),
     ],
 )
 @pytest.mark.asyncio
@@ -55,9 +60,21 @@ async def test_inner_handler(method, input_data, result):
     await method(commands, message)
 
 
-# @pytest.mark.asyncio
-# async def test_urls_hanler(input_data, result):
-#     bot = mock_bot(result)
-#     message = mock_message(input_data)
-#     commands = bot_commands(bot)
-#     await commands.
+@pytest.mark.parametrize(
+    "method, url_data, input_data, result",
+    [
+        (
+            bot_commands.weather,
+            {"https://wttr.in/Moscow?m&format=4": "Moscow: -5°C ←19km/h"},
+            "/weather Moscow",
+            "Moscow: -5°C ←19km/h",
+        )
+    ],
+)
+@pytest.mark.asyncio
+async def test_urls_hanler(method, url_data, input_data, result):
+    http_client = mock_http_client(url_data)
+    bot = mock_bot(result)
+    message = mock_message(input_data)
+    commands = bot_commands(bot, http_client)
+    await method(commands, message)
