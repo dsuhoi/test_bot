@@ -119,20 +119,27 @@ def input_latex(parsed_str, namespace, evaluated):
     return result if (result := parse_block(node)) else latex(evaluated)
 
 
-def sympy_eval(s, plot=False):
+def parse_str_expr(s, plot=False):
     namespace = {}
     exec(PREEXEC + PREEXEC_EXT if plot else PREEXEC, {}, namespace)
-    transformations = []
-    transformations.append(synonyms)
-    transformations.extend(standard_transformations)
-    transformations.extend((convert_xor, custom_implicit_transformation))
+    transformations = [
+        synonyms,
+        *standard_transformations,
+        convert_xor,
+        custom_implicit_transformation,
+    ]
     parsed = stringify_expr(s, {}, namespace, transformations)
     evaluated = eval_expr(parsed, {}, namespace)
+    return parsed, namespace, evaluated
+
+
+def sympy_eval(s, plot=False, latex_print=True):
+    parsed, namespace, evaluated = parse_str_expr(s, plot)
 
     if plot:
         return evaluated
     else:
         return {
             "input": input_latex(parsed, namespace, evaluated),
-            "output": latex(evaluated),
+            "output": latex(evaluated) if latex_print else evaluated,
         }

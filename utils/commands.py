@@ -19,7 +19,6 @@ signal.signal(
 )
 
 logging.basicConfig(format="[%(levelname)s]:<%(asctime)s>: %(message)s")
-http_client = AiohttpClient()
 transl = translator(source="auto", target="ru")
 
 
@@ -50,8 +49,9 @@ def bot_except(**params):
 
 
 class bot_commands(metaclass=meta_cmd):
-    def __init__(self, bot: Union[vk_wrapper, tg_wrapper]):
+    def __init__(self, bot: Union[vk_wrapper, tg_wrapper], http_client=AiohttpClient()):
         self.__bot = bot
+        self.__http = http_client
 
         self.__help = "Инструкция к боту:\n"
         self.__help_ext = {}
@@ -73,19 +73,19 @@ class bot_commands(metaclass=meta_cmd):
 
     @cmd(help_="/cat /fox /neko -- получение фото")
     async def cat(self, message):
-        buff = await http_client.request_content("https://thiscatdoesnotexist.com/")
+        buff = await self.__http.request_content("https://thiscatdoesnotexist.com/")
         await self.__bot.answer_photo(message, buff)
 
     @cmd()
     async def fox(self, message):
-        resp = await http_client.request_json("https://randomfox.ca/floof/")
-        buff = await http_client.request_content(resp["image"])
+        resp = await self.__http.request_json("https://randomfox.ca/floof/")
+        buff = await self.__http.request_content(resp["image"])
         await self.__bot.answer_photo(message, buff)
 
     @cmd()
     async def neko(self, message):
-        resp = await http_client.request_json("https://api.waifu.pics/sfw/neko")
-        buff = await http_client.request_content(resp["url"])
+        resp = await self.__http.request_json("https://api.waifu.pics/sfw/neko")
+        buff = await self.__http.request_content(resp["url"])
         await self.__bot.answer_photo(message, buff)
 
     @cmd(
@@ -104,19 +104,19 @@ class bot_commands(metaclass=meta_cmd):
     @cmd(help_ext="/number <number> -- получение информации о числе")
     async def numbers(self, message):
         input_str = tmp[1] if len(tmp := message.text.split()) > 1 else "random"
-        text = await http_client.request_text(f"http://numbersapi.com/{input_str}")
+        text = await self.__http.request_text(f"http://numbersapi.com/{input_str}")
         await self.__bot.answer(message, transl.translate(text=text))
 
     @cmd(help_="/weather <city> -- погода")
     async def weather(self, message):
         city = tmp[1] if len(tmp := message.text.split()) > 1 else "Novosibirsk"
-        text = await http_client.request_text(f"https://wttr.in/{city}?m&format=4")
+        text = await self.__http.request_text(f"https://wttr.in/{city}?m&format=4")
         await self.__bot.answer(message, text)
 
     @cmd(help_="/qrcode <text> -- генерация QR кода")
     async def qrcode(self, message):
         text = message.text.split(maxsplit=1)[1]
-        buff = await http_client.request_content(
+        buff = await self.__http.request_content(
             f"https://image-charts.com/chart?chs=150x150&cht=qr&chl={text}&choe=UTF-8"
         )
         await self.__bot.reply_photo(message, buff)
@@ -126,7 +126,7 @@ class bot_commands(metaclass=meta_cmd):
         text = message.text.split(maxsplit=1)[1]
         URL = "https://backend.craiyon.com/generate"
         res = (
-            await http_client.request_json(
+            await self.__http.request_json(
                 URL,
                 method="POST",
                 json={
@@ -141,7 +141,7 @@ class bot_commands(metaclass=meta_cmd):
     @cmd(help_="/story <text> -- история от GPT2")
     async def story(self, message):
         input_str = message.text.split(maxsplit=1)[1]
-        response = await http_client.request_json(
+        response = await self.__http.request_json(
             "https://pelevin.gpt.dobro.ai/generate/",
             method="POST",
             json={"prompt": input_str, "length": 100},
@@ -154,7 +154,7 @@ class bot_commands(metaclass=meta_cmd):
         signal.alarm(0)
         res_str = f"Input:$${res['input']}$$\nOutput:$${res['output']}$$"
         try:
-            resp_svg = await http_client.request_content(
+            resp_svg = await self.__http.request_content(
                 "https://math.vercel.app/",
                 params={
                     "from": r"\begin{aligned} & \text{Input:} \\"
