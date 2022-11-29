@@ -7,8 +7,8 @@ from typing import Union
 
 from cairosvg import svg2png
 from deep_translator import GoogleTranslator as translator
-from vkbottle.http import AiohttpClient
 
+from utils.async_requests import aio_requests
 from utils.sympy_wrapper import sympy_eval
 from utils.wrapper import cmd, meta_cmd, tg_wrapper, vk_wrapper
 
@@ -19,7 +19,6 @@ signal.signal(
 )
 
 logging.basicConfig(format="[%(levelname)s]:<%(asctime)s>: %(message)s")
-transl = translator(source="auto", target="ru")
 
 
 def get_attr(input_str: str, key, default=None):
@@ -49,9 +48,10 @@ def bot_except(**params):
 
 
 class bot_commands(metaclass=meta_cmd):
-    def __init__(self, bot: Union[vk_wrapper, tg_wrapper], http_client=AiohttpClient()):
+    def __init__(self, bot: Union[vk_wrapper, tg_wrapper], http_client=aio_requests()):
         self.__bot = bot
         self.__http = http_client
+        self.__transl = translator(source="auto", target="ru")
 
         self.__help = "Инструкция к боту:\n"
         self.__help_ext = {}
@@ -105,7 +105,7 @@ class bot_commands(metaclass=meta_cmd):
     async def numbers(self, message):
         input_str = tmp[1] if len(tmp := message.text.split()) > 1 else "random"
         text = await self.__http.request_text(f"http://numbersapi.com/{input_str}")
-        await self.__bot.answer(message, transl.translate(text=text))
+        await self.__bot.answer(message, self.__transl.translate(text=text))
 
     @cmd(help_="/weather <city> -- погода")
     async def weather(self, message):
