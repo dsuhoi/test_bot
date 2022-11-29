@@ -1,5 +1,5 @@
 import pytest
-from utils.sympy_wrapper import input_latex, parse_str_expr, sympy_eval
+from app.utils.sympy_wrapper import input_latex, parse_str_expr, sympy_eval
 
 
 @pytest.mark.parametrize(

@@ -1,5 +1,5 @@
 import pytest
-from utils.commands import bot_commands
+from app.commands import bot_commands
 
 
 class mock_message:

@@ -2,8 +2,8 @@ import os
 
 from vkbottle.bot import Bot, Message
 
-from utils.commands import bot_commands, bot_except
-from utils.wrapper import vk_wrapper
+from app.commands import bot_commands, bot_except
+from app.utils.wrapper import vk_wrapper
 
 TOKEN = os.getenv("VK_TOKEN")
 bot = Bot(TOKEN)

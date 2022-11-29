@@ -8,9 +8,9 @@ from typing import Union
 from cairosvg import svg2png
 from deep_translator import GoogleTranslator as translator
 
-from utils.async_requests import aio_requests
-from utils.sympy_wrapper import sympy_eval
-from utils.wrapper import cmd, meta_cmd, tg_wrapper, vk_wrapper
+from app.utils.async_requests import aio_requests
+from app.utils.sympy_wrapper import sympy_eval
+from app.utils.wrapper import cmd, meta_cmd, tg_wrapper, vk_wrapper
 
 TIMEOUT = 15
 signal.signal(

@@ -42,6 +42,6 @@ class aio_requests:
             encoding="utf-8", loads=json.loads, content_type=None
         )
 
-    async def request_bin(self, url: str, method: str = "GET", data=None, **kwargs):
+    async def request_content(self, url: str, method: str = "GET", data=None, **kwargs):
         response = await self.__request(url, method, data, **kwargs)
         return response._body

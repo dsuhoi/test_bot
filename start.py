@@ -1,7 +1,7 @@
 import multiprocessing as mp
 
-import tgtest as tgt
-import vktest as vkt
+import app.tgtest as tgt
+import app.vktest as vkt
 
 if __name__ == "__main__":
     vk_proc = mp.Process(target=vkt.bot.run_forever)
