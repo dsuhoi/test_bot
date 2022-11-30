@@ -1,4 +1,5 @@
 # test_bot
+[![workflow](https://github.com/dsuhoi/test_bot/actions/workflows/python-app.yml/badge.svg)](https://github.com/dsuhoi/test_bot/actions/workflows/python-app.yml)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/dsuhoi/test_bot)
 [![Telegram](https://badgen.net/badge/icon/telegram?icon=telegram&label)](https://t.me/math_test0_bot)
 [![GitHub](https://img.shields.io/github/license/dsuhoi/test_bot)](https://github.com/dsuhoi/test_bot/blob/main/LICENSE)
