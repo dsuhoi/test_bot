@@ -44,11 +44,6 @@ def mock_bot(result):
 @pytest.mark.parametrize(
     "method, input_data, result",
     [
-        (
-            bot_commands.help,
-            "/help translate",
-            "Примеры:\n/translate Hello world!\n/translate -L ja Привет мир!\n",
-        ),
         (bot_commands.translate, "/translate Hello world!", "Привет, мир!"),
     ],
 )
