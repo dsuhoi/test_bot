@@ -1,9 +1,12 @@
-FROM python:3.10
+FROM python:3.10-slim
 
-WORKDIR /home/app
+WORKDIR /test_bot
 
-COPY *.py requirements.txt ./
-RUN apt-get update
+RUN apt-get update && apt-get install -y libcairo2
+
+COPY start.py requirements.txt ./
+COPY app/ ./app/
+
 RUN pip install -r requirements.txt
 
 ENTRYPOINT ["python", "start.py"]
