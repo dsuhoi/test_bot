@@ -65,8 +65,7 @@ class bot_commands(metaclass=meta_cmd):
 
     @cmd(help_="/help <command> -- вызов инструкции")
     async def help(self, message):
-        input_str = message.text.split(maxsplit=1)
-        if len(input_str) > 1 and (h := self.__help_ext.get(input_str[1])):
+        if message.text != "" and (h := self.__help_ext.get(message.text)):
             help_str = h
         else:
             help_str = self.__help
@@ -98,41 +97,37 @@ class bot_commands(metaclass=meta_cmd):
 """,
     )
     async def translate(self, message):
-        input_str = message.text.split(maxsplit=1)[1]
-        text, lang = get_attr(input_str, "L", default="ru")
+        text, lang = get_attr(message.text, "L", default="ru")
         text = translator(source="auto", target=lang.lower()).translate(text=text)
         await self.__bot.reply(message, text)
 
     @cmd(help_ext="/number <number> -- получение информации о числе")
     async def numbers(self, message):
-        input_str = tmp[1] if len(tmp := message.text.split()) > 1 else "random"
+        input_str = s if (s := message.text) != "" else "random"
         text = await self.__http.request_text(f"http://numbersapi.com/{input_str}")
         await self.__bot.answer(message, self.__transl.translate(text=text))
 
     @cmd(help_="/weather <city> -- погода")
     async def weather(self, message):
-        city = tmp[1] if len(tmp := message.text.split()) > 1 else "Novosibirsk"
+        city = s if (s := message.text) != "" else "Moscow"
         text = await self.__http.request_text(f"https://wttr.in/{city}?m&format=4")
         await self.__bot.answer(message, text)
 
     @cmd(help_="/qrcode <text> -- генерация QR кода")
     async def qrcode(self, message):
-        text = message.text.split(maxsplit=1)[1]
         buff = await self.__http.request_content(
-            f"https://image-charts.com/chart?chs=150x150&cht=qr&chl={text}&choe=UTF-8"
+            f"https://image-charts.com/chart?chs=150x150&cht=qr&chl={message.text}&choe=UTF-8"
         )
         await self.__bot.reply_photo(message, buff)
 
     @cmd(help_="/image <text> -- генерация изображения по описанию")
     async def image(self, message):
-        text = message.text.split(maxsplit=1)[1]
-        URL = "https://backend.craiyon.com/generate"
         res = (
             await self.__http.request_json(
-                URL,
+                "https://backend.craiyon.com/generate",
                 method="POST",
                 json={
-                    "prompt": text,
+                    "prompt": message.text,
                 },
             )
         ).get("images")
@@ -142,23 +137,21 @@ class bot_commands(metaclass=meta_cmd):
 
     @cmd(help_="/story <text> -- история от GPT2")
     async def story(self, message):
-        input_str = message.text.split(maxsplit=1)[1]
         response = await self.__http.request_json(
             "https://pelevin.gpt.dobro.ai/generate/",
             method="POST",
-            json={"prompt": input_str, "length": 100},
+            json={"prompt": message.text, "length": 100},
         )
-        await self.__bot.answer(message, input_str + response["replies"][0])
+        await self.__bot.answer(message, message.text + response["replies"][0])
 
     @cmd(help_="/gpt <text> -- запрос для chatgpt")
     async def gpt(self, message):
-        prompt = message.text.split(" ", 1)[1]
         response = await self.__http.request_json(
             "https://api.openai.com/v1/chat/completions",
             method="POST",
             json={
                 "model": "gpt-3.5-turbo",
-                "messages": [{"role": "user", "content": prompt}],
+                "messages": [{"role": "user", "content": message.text}],
             },
             headers={"Authorization": f"Bearer {openai_token}"},
         )
@@ -198,38 +191,9 @@ class bot_commands(metaclass=meta_cmd):
 """,
     )
     async def calc(self, message):
-        buff = await self.calc__(message.text.split(" ", 1)[1])
+        buff = await self.calc__(message.text)
         if isinstance(buff, str):
             await self.__bot.answer(message, buff)
         else:
             await self.__bot.answer_photo(message, buff)
             buff.close()
-
-    def plot__(self, input_str: str):
-        signal.alarm(TIMEOUT)
-        fig = sympy_eval(input_str.rsplit(")", 1)[0] + ",show=False)", plot=True)
-        buff = BytesIO()
-        signal.alarm(TIMEOUT)
-        fig.save(buff)
-        signal.alarm(0)
-        del fig
-        buff.seek(0)
-        return buff
-
-    @cmd(
-        sigflag=True,
-        regexp=True,
-        help_="/plot[...] -- вызов sympy-функций для вывода графиков",
-        help_ext="""Примеры:
-/plot(x, x^2, x^3) -- вывод нескольких графиков
-/ploti(x^2 - y^2 - 1) -- вывод графика, заданного уравнением
-Синонимы:
-ploti -- plot_implicit
-plot3ds -- plot3d_parametric_surface
-plot3dL -- plot3d_parametric_line
-""",
-    )
-    async def plot(self, message):
-        buff = self.plot__(message.text[1:])
-        await self.__bot.answer_photo(message, buff)
-        buff.close()

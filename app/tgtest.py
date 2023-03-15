@@ -28,6 +28,7 @@ def generate_func(func):
     @dp.message_handler(**handler_kwargs)
     @bot_except(sigflag=func.get("sigflag"))
     async def wrapper(message: Message):
+        message.text = s[1] if len(s := message.text.split(maxsplit=1)) > 1 else ""
         await getattr(commands, func["name"])(message)
 
     wrapper.__name__ = func["name"]

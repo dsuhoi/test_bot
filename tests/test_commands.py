@@ -44,7 +44,7 @@ def mock_bot(result):
 @pytest.mark.parametrize(
     "method, input_data, result",
     [
-        (bot_commands.translate, "/translate Hello world!", "Привет, мир!"),
+        (bot_commands.translate, "Hello world!", "Привет, мир!"),
     ],
 )
 @pytest.mark.asyncio
@@ -61,7 +61,7 @@ async def test_inner_handler(method, input_data, result):
         (
             bot_commands.weather,
             {"https://wttr.in/Moscow?m&format=4": "Moscow: -5°C ←19km/h"},
-            "/weather Moscow",
+            "Moscow",
             "Moscow: -5°C ←19km/h",
         )
     ],
