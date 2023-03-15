@@ -24,7 +24,7 @@ class aio_requests:
     async def __request(self, url: str, method: str = "GET", data=None, **kwargs):
         if not self.__session:
             self.__session = aiohttp.ClientSession(
-                json_serialize=json.dump, **self.__session_params
+                json_serialize=json.dumps, **self.__session_params
             )
         async with self.__session.request(
             url=url, method=method, data=data, **kwargs

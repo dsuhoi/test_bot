@@ -1,5 +1,6 @@
 import base64
 import logging
+import os
 import re
 import signal
 from io import BytesIO
@@ -17,6 +18,7 @@ signal.signal(
     signal.SIGALRM,
     lambda sig, st: (_ for _ in ()).throw(Exception("Превышен лимит по времени!")),
 )
+openai_token = os.getenv("OPENAI_TOKEN")
 
 logging.basicConfig(format="[%(levelname)s]:<%(asctime)s>: %(message)s")
 
@@ -147,6 +149,20 @@ class bot_commands(metaclass=meta_cmd):
             json={"prompt": input_str, "length": 100},
         )
         await self.__bot.answer(message, input_str + response["replies"][0])
+
+    @cmd(help_="/gpt <text> -- запрос для chatgpt")
+    async def gpt(self, message):
+        prompt = message.text.split(" ", 1)[1]
+        response = await self.__http.request_json(
+            "https://api.openai.com/v1/chat/completions",
+            method="POST",
+            json={
+                "model": "gpt-3.5-turbo",
+                "messages": [{"role": "user", "content": prompt}],
+            },
+            headers={"Authorization": f"Bearer {openai_token}"},
+        )
+        await self.__bot.reply(message, response["choices"][0]["message"]["content"])
 
     async def calc__(self, input_str: str):
         signal.alarm(TIMEOUT)
