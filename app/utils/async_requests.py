@@ -13,9 +13,12 @@ class aio_requests:
 
     def __del__(self):
         if self.__session and not self.__session.closed:
-            if self.session._connector is not None and self.session._connector_owner:
-                self.session._connector.close()
-            self.session._connector = None
+            if (
+                self.__session._connector is not None
+                and self.__session._connector_owner
+            ):
+                self.__session._connector.close()
+            self.__session._connector = None
 
     async def close(self):
         if self.__session and not self.__session.closed:
