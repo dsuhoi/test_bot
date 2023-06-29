@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+  web:
+    build: .
+    command: python3 main.py
+    volumes:
+      - .:/test_bot
+    ports:
+      - 5005:5000
+    env_file:
+      - ./.env

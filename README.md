@@ -13,7 +13,7 @@ pip istall -r requirements.txt
 
 ## Run
 ```sh
-python start.py
+python main.py
 ```
 
 ## Contributing
